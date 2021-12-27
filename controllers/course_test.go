@@ -13,20 +13,19 @@ import (
 )
 
 func createcourse() models.Course {
-	material := createcoursematerial()
+	ar := createcoursematerial()
+	material, err := CreateCourseMaterial(context.Background(), &ar)
+	if err != nil {
+		log.Fatal(err)
+	}
 	arg := models.Course{
-		Name:        util.RandomAuthor(),
-		Author:      []string{util.RandomAuthor()},
-		Description: util.RandomString(40),
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-		CourseMaterial: models.CourseMaterial{
-			ID:        material.ID,
-			Author:    material.Author,
-			PdfFileID: material.PdfFileID,
-			CreatedAt: material.CreatedAt,
-			UpdatedAt: material.UpdatedAt,
-		},
+		ID:               primitive.NewObjectID(),
+		Name:             util.RandomAuthor(),
+		Author:           []string{util.RandomAuthor()},
+		Description:      util.RandomString(40),
+		CreatedAt:        time.Now(),
+		UpdatedAt:        time.Now(),
+		CourseMaterialID: material.ID,
 	}
 	return arg
 }
@@ -36,7 +35,7 @@ func createcoursematerial() models.CourseMaterial {
 	id, _ := Pdf(file)
 	//ide, _ := primitive.ObjectIDFromHex(id)
 	material := models.CourseMaterial{
-
+		ID:        primitive.NewObjectID(),
 		Author:    []string{util.RandomAuthor()},
 		PdfFileID: []primitive.ObjectID{id},
 		CreatedAt: time.Now(),
