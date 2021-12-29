@@ -27,15 +27,15 @@ func TestCourseMaterial(t *testing.T) {
 }
 
 func TestFindCourseMaterial(t *testing.T) {
-	material, err := FindCourseMaterial(context.Background(), "61c857530b1847aa31fe4d1b")
+	material, err := FindCourseMaterial(context.Background(), "61cca5e671cf508291edbacd")
 	require.NoError(t, err)
 	require.NotNil(t, material)
 }
 func TestUpdateCourseMaterial(t *testing.T) {
-	err := UpdateCourseMaterial(context.Background(), "61c8571a156059a708b2f8f2", "C#", "Idk you bitch!")
+	err := UpdateCourseMaterial(context.Background(), "61cca5e671cf508291edbacd", "C#", "Idk you bitch!")
 	require.NoError(t, err)
 }
 func TestDeleteCourseMaterial(t *testing.T) {
-	err := DeleteCourseMaterial(context.Background(), "61c8571a156059a708b2f8f2")
+	err := DeleteCourseMaterial(context.Background(), "61cca72e1f7151c5052e5fab")
 	require.NoError(t, err)
 }

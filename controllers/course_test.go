@@ -21,7 +21,7 @@ func createcourse() models.Course {
 	arg := models.Course{
 		ID:               primitive.NewObjectID(),
 		Name:             util.RandomAuthor(),
-		Author:           []string{util.RandomAuthor()},
+		Author:           util.RandomAuthor(),
 		Description:      util.RandomString(40),
 		CreatedAt:        time.Now(),
 		UpdatedAt:        time.Now(),
