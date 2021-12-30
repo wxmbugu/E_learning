@@ -29,9 +29,8 @@ func (server *Server) createCourse(ctx *gin.Context) {
 	if err != nil {
 		if we, ok := err.(mongo.WriteException); ok {
 			for _, e := range we.WriteErrors {
-				// check e.Code
 				if e.Index == 0 {
-					ctx.JSON(http.StatusBadRequest, "A course with this title already exists")
+					ctx.JSON(http.StatusBadRequest, gin.H{"error": "A course with this title already exists"})
 					return
 				}
 			}
@@ -40,4 +39,108 @@ func (server *Server) createCourse(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, course)
+}
+
+type getCourseRequest struct {
+	ID string `uri:"id"  binding:"required"`
+}
+
+func (server *Server) deleteCourse(ctx *gin.Context) {
+	var req getCourseRequest
+	if err := ctx.BindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err := controllers.DeleteCourse(ctx, req.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong couldn't delete"})
+		return
+	}
+	ctx.JSON(http.StatusOK, "Delete Course Successfull!")
+}
+
+func (server *Server) findCourse(ctx *gin.Context) {
+	var req getCourseRequest
+	if err := ctx.BindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	course, err := controllers.FindCourse(ctx, req.ID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong couldn't fetch data"})
+		return
+	}
+	ctx.JSON(http.StatusOK, course)
+}
+
+type updateCourseRequest struct {
+	ID          string `uri:"id"  binding:"required"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+func (server *Server) updateCourse(ctx *gin.Context) {
+	var req updateCourseRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	arg := controllers.UpdateCourseParams{
+		ID:          req.ID,
+		Name:        req.Name,
+		Description: req.Description,
+	}
+	_, err := controllers.FindCourse(ctx, arg.ID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
+			return
+		}
+	} else {
+		results, err := controllers.UpdateCourse(ctx, arg)
+		if err != nil {
+			if we, ok := err.(mongo.WriteException); ok {
+				for _, e := range we.WriteErrors {
+					if e.Index == 0 {
+						ctx.JSON(http.StatusBadRequest, gin.H{"error": "A course with this title already exists"})
+						return
+					}
+				}
+			}
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong!"})
+			return
+		}
+		ctx.JSON(http.StatusOK, results)
+	}
+}
+
+type listCoursesRequest struct {
+	PageID   int64 `form:"page_id" binding:"required,min=0"`
+	PageSize int64 `form:"page_size" binding:"required,min=5,max=10"`
+}
+
+func (server *Server) listAccounts(ctx *gin.Context) {
+	var req listCoursesRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	arg := controllers.ListCoursesParams{
+		Limit: req.PageSize,
+		Skip:  (req.PageID - 1) * req.PageSize,
+	}
+	results, err := controllers.ListCourses(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, results)
 }

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -34,33 +34,46 @@ func CreateCourse(ctx context.Context, course *models.Course) (*models.Course, e
 }
 
 // find one course
-func FindCourse(ctx context.Context, name string) (models.Course, error) {
+func FindCourse(ctx context.Context, id string) (models.Course, error) {
 	collection := CourseCollection()
 	var results models.Course
-	err := collection.FindOne(ctx, bson.M{"Name": name}).Decode(&results)
+	iuud, _ := primitive.ObjectIDFromHex(id)
+	err := collection.FindOne(ctx, bson.M{"_id": iuud}).Decode(&results)
 	if err != nil {
 		// ErrNoDocuments means that the filter did not match any documents in the collection
-		log.Fatal(err)
+		if err == mongo.ErrNoDocuments {
+			log.Print("No such document")
+		}
 	}
-	//log.Fatal(err)
-	fmt.Print(results)
-	//log.Fatal(err)
 	return results, err
 }
 
-func UpdateCourse(ctx context.Context, id string, name, description string) error {
+type UpdateCourseParams struct {
+	ID          string `bson:"_id,omitempty"`
+	Name        string `json:"name" binding:"required" bson:"Name,omitempty"`
+	Description string `json:"description" binding:"required" bson:"Description,omitempty"`
+}
+
+func UpdateCourse(ctx context.Context, arg UpdateCourseParams) (*mongo.UpdateResult, error) {
 	collection := CourseCollection()
 	update := bson.D{
-		{Key: "$set", Value: bson.D{{Key: "Name", Value: name}, {Key: "Description", Value: description}, {Key: "Updated_at", Value: time.Now()}}},
+		{Key: "$set", Value: bson.D{{Key: "Name", Value: arg.Name}, {Key: "Description", Value: arg.Description}, {Key: "Updated_at", Value: time.Now()}}},
 	}
-	iuud, _ := primitive.ObjectIDFromHex(id)
+	iuud, _ := primitive.ObjectIDFromHex(arg.ID)
 	updateResult, err := collection.UpdateByID(context.TODO(), iuud, update)
 	if err != nil {
-		log.Fatal(err)
+		if we, ok := err.(mongo.WriteException); ok {
+			for _, e := range we.WriteErrors {
+				if e.Index == 0 {
+					log.Print(err)
+				}
+			}
+		}
 	}
-	fmt.Print(updateResult)
-	return err
+	//fmt.Print(updateResult)
+	return updateResult, err
 }
+
 func DeleteCourse(ctx context.Context, id string) error {
 	collection := CourseCollection()
 	iuud, _ := primitive.ObjectIDFromHex(id)
@@ -69,4 +82,53 @@ func DeleteCourse(ctx context.Context, id string) error {
 		log.Fatal(err)
 	}
 	return err
+}
+
+type ListCoursesParams struct {
+	//Owner  string `json:"owner"`
+	Limit int64
+	Skip  int64
+}
+
+//Find multiple documents
+func ListCourses(ctx context.Context, arg ListCoursesParams) ([]models.Course, error) {
+	collection := CourseCollection()
+	//check the connection
+
+	//find records
+	//pass these options to the Find method
+	findOptions := options.Find()
+	//Set the limit of the number of record to find
+	findOptions.SetLimit(arg.Limit)
+	findOptions.SetSkip(arg.Skip)
+	//Define an array in which you can store the decoded documents
+	var results []models.Course
+
+	//Passing the bson.D{{}} as the filter matches  documents in the collection
+	cur, err := collection.Find(ctx, bson.D{{}}, findOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//Finding multiple documents returns a cursor
+	//Iterate through the cursor allows us to decode documents one at a time
+
+	for cur.Next(ctx) {
+		//Create a value into which the single document can be decoded
+		var elem models.Course
+		err := cur.Decode(&elem)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		results = append(results, elem)
+
+	}
+
+	if err := cur.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	//Close the cursor once finished
+	cur.Close(ctx)
+	return results, err
 }
