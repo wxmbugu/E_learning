@@ -91,6 +91,7 @@ func TestDeleteCourse(t *testing.T) {
 func TestListCourse(t *testing.T) {
 	arg := ListCoursesParams{
 		Limit: 10,
+		Skip:  1,
 	}
 	results, err := ListCourses(context.Background(), arg)
 	require.NoError(t, err)

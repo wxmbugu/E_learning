@@ -1,8 +1,17 @@
 package main
 
-import "github.com/E_learning/api"
+import (
+	"log"
+
+	"github.com/E_learning/api"
+	"github.com/E_learning/util"
+)
 
 func main() {
 	server := api.NewServer()
-	server.Start(":8000")
+	env, err := util.LoadConfig()
+	if err != nil {
+		log.Print(err)
+	}
+	server.Start(env.Server_address)
 }
