@@ -14,29 +14,29 @@ import (
 )
 
 const (
-	collectionCourse = "Course"
+	StudentCollection = "Instructors"
 )
 
 //creates the course collection
-func CourseCollection() *mongo.Collection {
+func CollectionStudent() *mongo.Collection {
 	db, err := db.DBInstance()
 	if err != nil {
 		log.Fatal(err)
 	}
-	collection := db.OpenCollection(context.Background(), collectionCourse)
+	collection := db.OpenCollection(context.Background(), InstructorCollection)
 	return collection
 }
 
-func CreateCourse(ctx context.Context, course *models.Course) (*models.Course, error) {
-	collection := CourseCollection()
-	_, err := collection.InsertOne(ctx, course)
-	return course, err
+func CreateStudent(ctx context.Context, instructor *models.Instructor) (*models.Instructor, error) {
+	collection := CollectionStudent()
+	_, err := collection.InsertOne(ctx, instructor)
+	return instructor, err
 }
 
 // find one course
-func FindCourse(ctx context.Context, id string) (models.Course, error) {
-	collection := CourseCollection()
-	var results models.Course
+func FindStudent(ctx context.Context, id string) (models.Student, error) {
+	collection := CollectionStudent()
+	var results models.Student
 	iuud, _ := primitive.ObjectIDFromHex(id)
 	err := collection.FindOne(ctx, bson.M{"_id": iuud}).Decode(&results)
 	if err != nil {
@@ -48,23 +48,20 @@ func FindCourse(ctx context.Context, id string) (models.Course, error) {
 	return results, err
 }
 
-type UpdateCourseParams struct {
-	ID                  string              `bson:"_id,omitempty"`
-	Name                string              `json:"name" binding:"required" bson:"Name,omitempty"`
-	Description         string              `json:"description" binding:"required" bson:"Description,omitempty"`
-	UpdateSectionParams UpdateSectionParams `bson:"Section"`
+type UpdateStudentParams struct {
+	ID        string    `bson:"_id,omitempty"`
+	FirstName string    `json:"Firstname" binding:"required" bson:"Firstname,omitempty"`
+	LastName  string    `json:"Lastname" binding:"required" bson:"Lastname"`
+	UserName  string    `bson:"Username" json:"Username" binding:"required"`
+	Email     string    `bson:"Email" json:"Email" binding:"required"`
+	Password  string    `bson:"Password" json:"Password" binding:"required"`
+	UpdatedAt time.Time `json:"Updated_at,omitempty" bson:"Updated_at,omitempty"`
 }
 
-type UpdateSectionParams struct {
-	ID      primitive.ObjectID `bson:"_id,omitempty"`
-	Title   string             `json:"Title"  bson:"Title,omitempty"`
-	Content string             `json:"Content"  bson:"Content,omitempty"`
-}
-
-func UpdateCourse(ctx context.Context, arg UpdateCourseParams) (*mongo.UpdateResult, error) {
-	collection := CourseCollection()
+func UpdateStudent(ctx context.Context, arg UpdateStudentParams) (*mongo.UpdateResult, error) {
+	collection := CollectionStudent()
 	update := bson.D{
-		{Key: "$set", Value: bson.D{{Key: "Name", Value: arg.Name}, {Key: "Description", Value: arg.Description}, {Key: "Updated_at", Value: time.Now()}, {Key: "Section.$[].Title", Value: arg.UpdateSectionParams.Title}, {Key: "Section.$[].Content", Value: arg.UpdateSectionParams.Content}}},
+		{Key: "$set", Value: bson.D{{Key: "Firstname", Value: arg.FirstName}, {Key: "Lastname", Value: arg.LastName}, {Key: "Username", Value: arg.UserName}, {Key: "Password", Value: arg.Password}, {Key: "Updated_at", Value: time.Now()}}},
 	}
 	iuud, _ := primitive.ObjectIDFromHex(arg.ID)
 	updateResult, err := collection.UpdateByID(context.TODO(), iuud, update)
@@ -81,8 +78,8 @@ func UpdateCourse(ctx context.Context, arg UpdateCourseParams) (*mongo.UpdateRes
 	return updateResult, err
 }
 
-func DeleteCourse(ctx context.Context, id string) error {
-	collection := CourseCollection()
+func DeleteStudent(ctx context.Context, id string) error {
+	collection := CollectionStudent()
 	iuud, _ := primitive.ObjectIDFromHex(id)
 	_, err := collection.DeleteOne(ctx, bson.M{"_id": iuud})
 	if err != nil {
@@ -91,15 +88,15 @@ func DeleteCourse(ctx context.Context, id string) error {
 	return err
 }
 
-type ListCoursesParams struct {
+type ListStudentParams struct {
 	//Owner  string `json:"owner"`
 	Limit int64
 	Skip  int64
 }
 
 //Find multiple documents
-func ListCourses(ctx context.Context, arg ListCoursesParams) ([]models.Course, error) {
-	collection := CourseCollection()
+func ListStudents(ctx context.Context, arg ListStudentParams) ([]models.Student, error) {
+	collection := CollectionStudent()
 	//check the connection
 
 	//find records
@@ -109,7 +106,7 @@ func ListCourses(ctx context.Context, arg ListCoursesParams) ([]models.Course, e
 	findOptions.SetLimit(arg.Limit)
 	findOptions.SetSkip(arg.Skip)
 	//Define an array in which you can store the decoded documents
-	var results []models.Course
+	var results []models.Student
 
 	//Passing the bson.D{{}} as the filter matches  documents in the collection
 	cur, err := collection.Find(ctx, bson.D{{}}, findOptions)
@@ -121,7 +118,7 @@ func ListCourses(ctx context.Context, arg ListCoursesParams) ([]models.Course, e
 
 	for cur.Next(ctx) {
 		//Create a value into which the single document can be decoded
-		var elem models.Course
+		var elem models.Student
 		err := cur.Decode(&elem)
 		if err != nil {
 			log.Fatal(err)

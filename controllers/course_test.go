@@ -14,6 +14,9 @@ import (
 
 func createcourse() models.Course {
 	ar := createcoursematerial()
+	section := NewSection()
+	section2 := NewSection()
+	section = append(section, section2...)
 	material, err := CreateCourseMaterial(context.Background(), &ar)
 	if err != nil {
 		log.Fatal(err)
@@ -26,8 +29,19 @@ func createcourse() models.Course {
 		CreatedAt:        time.Now(),
 		UpdatedAt:        time.Now(),
 		CourseMaterialID: material.ID,
+		Section:          section,
 	}
 	return arg
+}
+func NewSection() []models.Section {
+	result := []models.Section{}
+	section := models.Section{
+		ID:      primitive.NewObjectID(),
+		Title:   util.RandomString(10),
+		Content: util.RandomString(1000),
+	}
+	result = append(result, section)
+	return result
 }
 
 func createcoursematerial() models.CourseMaterial {

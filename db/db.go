@@ -34,10 +34,6 @@ func DBInstance() (*DB, error) {
 
 //creates collection
 func (db *DB) OpenCollection(ctx context.Context, collectionName string) *mongo.Collection {
-	config, err := util.LoadConfig()
-	if err != nil {
-		log.Print(err)
-	}
-	collection := db.Client.Database(config.DbName).Collection(collectionName)
+	collection := db.Client.Database("e-learning").Collection(collectionName)
 	return collection
 }
