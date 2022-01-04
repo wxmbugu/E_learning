@@ -14,12 +14,12 @@ type Course struct {
 	CreatedAt        time.Time          `json:"created_at" bson:"Created_at"`
 	UpdatedAt        time.Time          `json:"updated_at,omitempty" bson:"Updated_at,omitempty"`
 	CourseMaterialID primitive.ObjectID `json:"CourseMaterialID,omitempty" bson:"CourseMaterialID,omitempty"`
-	Section          []Section          `json:"Section,omitempty" bson:"Section,omitempty"`
+	Section          []*Section         `json:"Section,omitempty" bson:"Section,omitempty"`
 	StudentsEnrolled []string           `json:"StudentsEnrolled" bson:"StudentsEnrolled,omitempty"`
 }
 
 type Section struct {
-	ID      primitive.ObjectID `bson:"SectionId,omitempty"`
+	ID      primitive.ObjectID `bson:"_id" `
 	Title   string             `json:"Title" binding:"required" bson:"Title,omitempty"`
 	Content string             `json:"Content" binding:"required" bson:"Content,omitempty"`
 }

@@ -49,22 +49,15 @@ func FindCourse(ctx context.Context, id string) (models.Course, error) {
 }
 
 type UpdateCourseParams struct {
-	ID                  string              `bson:"_id,omitempty"`
-	Name                string              `json:"name" binding:"required" bson:"Name,omitempty"`
-	Description         string              `json:"description" binding:"required" bson:"Description,omitempty"`
-	UpdateSectionParams UpdateSectionParams `bson:"Section"`
-}
-
-type UpdateSectionParams struct {
-	ID      primitive.ObjectID `bson:"_id,omitempty"`
-	Title   string             `json:"Title"  bson:"Title,omitempty"`
-	Content string             `json:"Content"  bson:"Content,omitempty"`
+	ID          string `bson:"_id,omitempty"`
+	Name        string `json:"name" binding:"required" bson:"Name,omitempty"`
+	Description string `json:"description" binding:"required" bson:"Description,omitempty"`
 }
 
 func UpdateCourse(ctx context.Context, arg UpdateCourseParams) (*mongo.UpdateResult, error) {
 	collection := CourseCollection()
 	update := bson.D{
-		{Key: "$set", Value: bson.D{{Key: "Name", Value: arg.Name}, {Key: "Description", Value: arg.Description}, {Key: "Updated_at", Value: time.Now()}, {Key: "Section.$[].Title", Value: arg.UpdateSectionParams.Title}, {Key: "Section.$[].Content", Value: arg.UpdateSectionParams.Content}}},
+		{Key: "$set", Value: bson.D{{Key: "Name", Value: arg.Name}, {Key: "Description", Value: arg.Description}, {Key: "Updated_at", Value: time.Now()}}},
 	}
 	iuud, _ := primitive.ObjectIDFromHex(arg.ID)
 	updateResult, err := collection.UpdateByID(context.TODO(), iuud, update)

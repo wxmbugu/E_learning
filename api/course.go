@@ -13,17 +13,17 @@ import (
 
 func (server *Server) createCourse(ctx *gin.Context) {
 	var req models.Course
-
+	//var x primitive.ObjectID
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
 	args := models.Course{
 		ID:          primitive.NewObjectID(),
 		Name:        req.Name,
 		Author:      req.Author,
 		Description: req.Description,
-		Section:     req.Section,
 		CreatedAt:   time.Now(),
 	}
 	course, err := controllers.CreateCourse(ctx, &args)
@@ -87,15 +87,9 @@ func (server *Server) findCourse(ctx *gin.Context) {
 }
 
 type updateCourseRequest struct {
-	ID               string           `uri:"id"  binding:"required"`
-	Name             string           `json:"name"`
-	Description      string           `json:"description"`
-	UpdateSectionReq UpdateSectionReq `json:"Section"`
-}
-type UpdateSectionReq struct {
-	ID      primitive.ObjectID `bson:"_id,omitempty"`
-	Title   string             `json:"Title"  bson:"Title,omitempty"`
-	Content string             `json:"Content"  bson:"Content,omitempty"`
+	ID          string `uri:"id"  binding:"required"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 func (server *Server) updateCourse(ctx *gin.Context) {
@@ -109,10 +103,9 @@ func (server *Server) updateCourse(ctx *gin.Context) {
 		return
 	}
 	arg := controllers.UpdateCourseParams{
-		ID:                  req.ID,
-		Name:                req.Name,
-		Description:         req.Description,
-		UpdateSectionParams: controllers.UpdateSectionParams(req.UpdateSectionReq),
+		ID:          req.ID,
+		Name:        req.Name,
+		Description: req.Description,
 	}
 	_, err := controllers.FindCourse(ctx, arg.ID)
 	if err != nil {

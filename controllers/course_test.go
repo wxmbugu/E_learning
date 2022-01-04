@@ -33,14 +33,14 @@ func createcourse() models.Course {
 	}
 	return arg
 }
-func NewSection() []models.Section {
-	result := []models.Section{}
+func NewSection() []*models.Section {
+	result := []*models.Section{}
 	section := models.Section{
 		ID:      primitive.NewObjectID(),
 		Title:   util.RandomString(10),
 		Content: util.RandomString(1000),
 	}
-	result = append(result, section)
+	result = append(result, &section)
 	return result
 }
 
