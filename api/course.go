@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -107,6 +108,7 @@ func (server *Server) updateCourse(ctx *gin.Context) {
 		Name:        req.Name,
 		Description: req.Description,
 	}
+	fmt.Println(arg)
 	_, err := controllers.FindCourse(ctx, arg.ID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

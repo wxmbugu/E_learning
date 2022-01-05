@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type CourseSec struct {
@@ -29,29 +30,24 @@ func AddSection(ctx context.Context, arg CourseSec) (*mongo.UpdateResult, error)
 	return result, err
 }
 
-type SectionUpd struct {
-	Name    string `uri:"name"  binding:"required"`
-	Id      string `uri:"id"   binding:"required"`
-	Title   string `json:"Title"`
-	Content string `json:"Content"`
-}
-
-func UpdateSection(ctx context.Context, arg *SectionUpd) (*mongo.UpdateResult, error) {
+func UpdateSection(ctx context.Context, name string, arg *models.Section) (*mongo.UpdateResult, error) {
 	collection := CourseCollection()
-	var result *mongo.UpdateResult
-	var err error
-	iuud, _ := primitive.ObjectIDFromHex(arg.Id)
-	//match := bson.M{"Section.$.id": iuud}
-	change := bson.M{
+	filter := bson.D{primitive.E{Key: "Name", Value: name}}
+	arrayFilters := options.ArrayFilters{Filters: bson.A{bson.M{"x._id": arg.ID}}}
+	upsert := true
+	opts := options.UpdateOptions{
+		ArrayFilters: &arrayFilters,
+		Upsert:       &upsert,
+	}
+	update := bson.M{
 		"$set": bson.M{
-			"Section.$.Title":   arg.Title,
-			"Section.$.Content": arg.Content,
+			"Section.$[x].Title":   arg.Title,
+			"Section.$[x].Content": arg.Content,
 		},
 	}
-	result, err = collection.UpdateByID(ctx, iuud, change)
+	result, err := collection.UpdateOne(ctx, filter, update, &opts)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Printf("error updating db: %+v\n", err)
 	}
-
 	return result, err
 }
