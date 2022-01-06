@@ -17,7 +17,8 @@ func NewServer() *Server {
 	router.POST("/course/update/:id", server.updateCourse)
 	router.GET("/courses", server.listAccounts)
 	router.POST("/course/:name", server.AddSection)
-	router.POST("/course/:name/:id", server.updateSection)
+	router.POST("/course/:name/updatesection/:id", server.updateSection)
+	router.DELETE("/course/:name/deletesection/:id", server.DeleteSection)
 	server.router = router
 	return &server
 }

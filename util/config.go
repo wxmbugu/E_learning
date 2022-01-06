@@ -14,7 +14,7 @@ type Config struct {
 }
 
 func LoadConfig() (Config, error) {
-	err := godotenv.Load(".env")
+	err := godotenv.Load("/home/stephen/go/src/github.com/E_learning/.env")
 	if err != nil {
 		log.Fatal("Error loading .env file", err)
 	}

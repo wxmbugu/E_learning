@@ -51,3 +51,39 @@ func UpdateSection(ctx context.Context, name string, arg *models.Section) (*mong
 	}
 	return result, err
 }
+
+type DelSection struct {
+	Name string
+	Id   string
+}
+
+func DeleteSection(ctx context.Context, arg DelSection) (*mongo.UpdateResult, error) {
+	collection := CourseCollection()
+	filter := bson.D{primitive.E{Key: "Name", Value: arg.Name}}
+	iuud, _ := primitive.ObjectIDFromHex(arg.Id)
+	update := bson.M{
+		"$pull": bson.M{
+			"Section": bson.D{primitive.E{Key: "_id", Value: iuud}},
+		},
+	}
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return result, err
+}
+
+func FindSection(ctx context.Context, name string, id string) (models.Section, error) {
+	var section models.Section
+	collection := CourseCollection()
+	iuud, _ := primitive.ObjectIDFromHex(id)
+	filter := bson.M{"Name": name, "Section._id": iuud}
+	err := collection.FindOne(ctx, filter).Decode(&section)
+	if err != nil {
+		// ErrNoDocuments means that the filter did not match any documents in the collection
+		if err == mongo.ErrNoDocuments {
+			log.Print("No such document")
+		}
+	}
+	return section, err
+}
