@@ -45,13 +45,12 @@ func NewSection() []*models.Section {
 }
 
 func createcoursematerial() models.CourseMaterial {
-	file := "/home/stephen/Documents/Waterflow.pdf"
-	id, _ := Pdf(file)
+	
 	//ide, _ := primitive.ObjectIDFromHex(id)
 	material := models.CourseMaterial{
 		ID:        primitive.NewObjectID(),
 		Author:    []string{util.RandomAuthor()},
-		PdfFileID: []primitive.ObjectID{id},
+		
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
