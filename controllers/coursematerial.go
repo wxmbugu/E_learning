@@ -27,22 +27,7 @@ func CourseMaterialCollection() *mongo.Collection {
 	return collection
 }
 
-func Pdf(file string) (primitive.ObjectID, error) {
-	//"/home/stephen/Documents/Waterflow.pdf" //os.Args[1] = testfile.zip
-	filename := path.Base(file)
-	_, err := db.DBInstance()
-	if err != nil {
-		log.Fatal(err)
-	}
-	upload, err := UploadPdf(file, filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	//var id []int
-	id := upload.FileID.(primitive.ObjectID)
 
-	return id, err
-}
 
 func CreateCourseMaterial(ctx context.Context, material *models.CourseMaterial) (*models.CourseMaterial, error) {
 	collection := CourseMaterialCollection()
