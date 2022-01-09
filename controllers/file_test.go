@@ -9,7 +9,7 @@ import (
 
 func TestDownloadFile(t *testing.T) {
 	filename := DownloadFile("Waterflow.pdf")
-	require.FileExists(t, "/home/stephen/go/src/github.com/E_learning/controllers/Waterflow.pdf")
+	require.FileExists(t, "./Waterflow.pdf")
 	require.NotNil(t, filename)
 }
 
