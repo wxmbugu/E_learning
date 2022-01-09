@@ -22,9 +22,9 @@ func TestCourseMaterial(t *testing.T) {
 }
 
 func TestFindCourseMaterial(t *testing.T) {
-	material, err := FindCourseMaterial(context.Background(), "61cca5e671cf508291edbacd")
-	require.NoError(t, err)
-	require.NotNil(t, material)
+	_, err := FindCourseMaterial(context.Background(), "61cca5e671cf508291edbacd")
+	require.Error(t, err)
+	
 }
 func TestUpdateCourseMaterial(t *testing.T) {
 	err := UpdateCourseMaterial(context.Background(), "61cca5e671cf508291edbacd", "C#", "Idk you bitch!")
