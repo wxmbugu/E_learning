@@ -26,10 +26,7 @@ func TestFindCourseMaterial(t *testing.T) {
 	require.Error(t, err)
 	
 }
-func TestUpdateCourseMaterial(t *testing.T) {
-	err := UpdateCourseMaterial(context.Background(), "61cca5e671cf508291edbacd", "C#", "Idk you bitch!")
-	require.NoError(t, err)
-}
+
 func TestDeleteCourseMaterial(t *testing.T) {
 	err := DeleteCourseMaterial(context.Background(), "61cca72e1f7151c5052e5fab")
 	require.NoError(t, err)
