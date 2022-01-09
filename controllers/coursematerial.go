@@ -46,7 +46,9 @@ func FindCourseMaterial(ctx context.Context, id string) (models.CourseMaterial, 
 	err := collection.FindOne(ctx, bson.M{"_id": iuud}).Decode(&results)
 	if err != nil {
 		// ErrNoDocuments means that the filter did not match any documents in the collection
-		log.Fatal(err)
+		if err == mongo.ErrNoDocuments {
+			log.Print("No such document")
+		}
 	}
 	//log.Fatal(err)
 	fmt.Print(results)
