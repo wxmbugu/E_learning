@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFindSetion(t *testing.T) {
+func TestFindSection(t *testing.T) {
 	args := createcourse()
 	section := NewSection()
 	argsec := CourseSec{
