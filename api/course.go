@@ -142,7 +142,7 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	arg := controllers.ListCoursesParams{
+	arg := controllers.ListParams{
 		Limit: req.PageSize,
 		Skip:  (req.PageID - 1) * req.PageSize,
 	}

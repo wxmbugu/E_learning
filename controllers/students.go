@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	StudentCollection = "Instructors"
+	StudentCollection = "Students"
 )
 
 //creates the course collection
@@ -27,10 +27,10 @@ func CollectionStudent() *mongo.Collection {
 	return collection
 }
 
-func CreateStudent(ctx context.Context, instructor *models.Instructor) (*models.Instructor, error) {
+func CreateStudent(ctx context.Context, student *models.Student) (*models.Student, error) {
 	collection := CollectionStudent()
-	_, err := collection.InsertOne(ctx, instructor)
-	return instructor, err
+	_, err := collection.InsertOne(ctx, student)
+	return student, err
 }
 
 // find one course
@@ -88,14 +88,8 @@ func DeleteStudent(ctx context.Context, id string) error {
 	return err
 }
 
-type ListStudentParams struct {
-	//Owner  string `json:"owner"`
-	Limit int64
-	Skip  int64
-}
-
 //Find multiple documents
-func ListStudents(ctx context.Context, arg ListStudentParams) ([]models.Student, error) {
+func ListStudents(ctx context.Context, arg ListParams) ([]models.Student, error) {
 	collection := CollectionStudent()
 	//check the connection
 

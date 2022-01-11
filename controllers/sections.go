@@ -73,8 +73,9 @@ func DeleteSection(ctx context.Context, arg DelSection) (*mongo.UpdateResult, er
 	return result, err
 }
 
-func FindSection(ctx context.Context, name string, id string) (models.Section, error) {
+func FindSection(ctx context.Context, name string, id string) (*models.Section, error) {
 	var section models.Section
+
 	collection := CourseCollection()
 	iuud, _ := primitive.ObjectIDFromHex(id)
 	filter := bson.M{"Name": name, "Section._id": iuud}
@@ -85,5 +86,6 @@ func FindSection(ctx context.Context, name string, id string) (models.Section, e
 			log.Print("No such document")
 		}
 	}
-	return section, err
+	fmt.Println(section)
+	return &section, err
 }

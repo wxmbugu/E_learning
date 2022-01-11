@@ -14,7 +14,12 @@ type Student struct {
 	Email        string             `bson:"Email" json:"Email" binding:"required"`
 	Password     string             `bson:"Password" json:"Password" binding:"required"`
 	CoursesTaken []string           `json:"Courses_taken,omitempty" bson:"Courses_taken,omitempty"`
-	Roles        []string           `bson:"Roles,omitempty"`
+	Roles        []Roles            `bson:"Roles,omitempty"`
 	CreatedAt    time.Time          `json:"Created_at" bson:"Created_at"`
 	UpdatedAt    time.Time          `json:"Updated_at" bson:"Updated_at,omitempty"`
+}
+
+type Roles struct {
+	Role string `json:"role" bson:"role,omitempty"`
+	Db   string `json:"db" bson:"db,omitempty"`
 }
