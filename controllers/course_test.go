@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"log"
 	"testing"
 	"time"
 
@@ -13,21 +12,15 @@ import (
 )
 
 func createcourse() models.Course {
-	ar := createcoursematerial()
 
-	material, err := CreateCourseMaterial(context.Background(), &ar)
-	if err != nil {
-		log.Fatal(err)
-	}
 	//section := NewSection()
 	arg := models.Course{
-		ID:               primitive.NewObjectID(),
-		Name:             util.RandomAuthor(),
-		Author:           util.RandomAuthor(),
-		Description:      util.RandomString(40),
-		CreatedAt:        time.Now(),
-		UpdatedAt:        time.Now(),
-		CourseMaterialID: material.ID,
+		ID:          primitive.NewObjectID(),
+		Name:        util.RandomAuthor(),
+		Author:      util.RandomAuthor(),
+		Description: util.RandomString(40),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 	return arg
 }
