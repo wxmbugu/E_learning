@@ -4,6 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+<<<<<<< HEAD
+=======
+
+>>>>>>> 323c2ab0bb4ea66a9424d89bd0119f51116147b7
 	"time"
 
 	"github.com/E_learning/db"
@@ -26,6 +30,11 @@ func CourseMaterialCollection() *mongo.Collection {
 	return collection
 }
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 323c2ab0bb4ea66a9424d89bd0119f51116147b7
 func CreateCourseMaterial(ctx context.Context, material *models.CourseMaterial) (*models.CourseMaterial, error) {
 	collection := CourseMaterialCollection()
 	_, err := collection.InsertOne(ctx, material)

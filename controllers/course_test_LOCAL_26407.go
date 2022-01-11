@@ -43,18 +43,10 @@ func NewSection() []*models.Section {
 }
 
 func createcoursematerial() models.CourseMaterial {
-<<<<<<< HEAD
-=======
-	
->>>>>>> 323c2ab0bb4ea66a9424d89bd0119f51116147b7
 	//ide, _ := primitive.ObjectIDFromHex(id)
 	material := models.CourseMaterial{
 		ID:        primitive.NewObjectID(),
 		Author:    []string{util.RandomAuthor()},
-<<<<<<< HEAD
-=======
-		
->>>>>>> 323c2ab0bb4ea66a9424d89bd0119f51116147b7
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
