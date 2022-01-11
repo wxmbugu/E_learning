@@ -11,9 +11,14 @@ jobs:
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker:
       - image: circleci/golang:1.15.8
+<<<<<<< HEAD
+      - image: circleci/mongo:4.0-xenial-ram
+||||||| f902d72
+=======
       - image: circleci/mongo:4.0-xenial-ram
        
 
+>>>>>>> main
     # Add steps to the job
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
