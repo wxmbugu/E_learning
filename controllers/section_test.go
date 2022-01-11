@@ -24,8 +24,7 @@ func TestFindSection(t *testing.T) {
 		fmt.Println(args.Name)
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		_, err = FindSection(context.Background(), "", "ok")
-		require.Error(t, err)
+		
 	}
 
 }
