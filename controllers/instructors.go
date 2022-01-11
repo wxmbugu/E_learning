@@ -34,7 +34,7 @@ func CreateInstructor(ctx context.Context, instructor *models.Instructor) (*mode
 }
 
 // find one course
-func FindInstructor(ctx context.Context, id string) (models.Instructor, error) {
+func FindInstructor(ctx context.Context, id string) (*models.Instructor, error) {
 	collection := CollectionInstructor()
 	var results models.Instructor
 	iuud, _ := primitive.ObjectIDFromHex(id)
@@ -45,7 +45,7 @@ func FindInstructor(ctx context.Context, id string) (models.Instructor, error) {
 			log.Print("No such document")
 		}
 	}
-	return results, err
+	return &results, err
 }
 
 type UpdateInstructorParams struct {
@@ -88,14 +88,14 @@ func DeleteInstructor(ctx context.Context, id string) error {
 	return err
 }
 
-type ListInstructorsParams struct {
+type ListParams struct {
 	//Owner  string `json:"owner"`
 	Limit int64
 	Skip  int64
 }
 
 //Find multiple documents
-func ListInstructors(ctx context.Context, arg ListStudentParams) ([]models.Instructor, error) {
+func ListInstructors(ctx context.Context, arg ListParams) ([]models.Instructor, error) {
 	collection := CollectionInstructor()
 	//check the connection
 

@@ -13,8 +13,7 @@ type Instructor struct {
 	UserName  string             `bson:"Username" json:"Username" binding:"required"`
 	Email     string             `bson:"Email" json:"Email" binding:"required"`
 	Password  string             `bson:"Password" json:"Password" binding:"required"`
-	Courses   []string           `json:"Courses,omitempty" bson:"Courses,omitempty"`
-	Roles     []string           `bson:"Roles,omitempty"`
+	Roles     []Roles            `bson:"Roles,omitempty"`
 	CreatedAt time.Time          `json:"Created_at" bson:"Created_at"`
 	UpdatedAt time.Time          `json:"Updated_at,omitempty" bson:"Updated_at,omitempty"`
 }

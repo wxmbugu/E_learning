@@ -7,13 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPdfUpload(t *testing.T) {
-	file := "/home/stephen/Documents/Waterflow.pdf"
-	_, err := Pdf(file)
-	require.NoError(t, err)
-
-}
-
 func TestCourseMaterial(t *testing.T) {
 
 	arg := createcoursematerial()

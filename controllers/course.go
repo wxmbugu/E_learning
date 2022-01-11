@@ -84,14 +84,8 @@ func DeleteCourse(ctx context.Context, id string) error {
 	return err
 }
 
-type ListCoursesParams struct {
-	//Owner  string `json:"owner"`
-	Limit int64
-	Skip  int64
-}
-
 //Find multiple documents
-func ListCourses(ctx context.Context, arg ListCoursesParams) ([]models.Course, error) {
+func ListCourses(ctx context.Context, arg ListParams) ([]models.Course, error) {
 	collection := CourseCollection()
 	//check the connection
 

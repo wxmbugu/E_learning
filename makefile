@@ -1,3 +1,5 @@
+mongo:
+	docker exec -it e-learning bash
 test:
 	go test -cover ./...
 server:
