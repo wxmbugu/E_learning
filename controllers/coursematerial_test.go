@@ -21,11 +21,7 @@ func TestCourseMaterial(t *testing.T) {
 	require.WithinDuration(t, courseMaterial.UpdatedAt, arg.UpdatedAt, 10)
 }
 
-func TestFindCourseMaterial(t *testing.T) {
-	material, err := FindCourseMaterial(context.Background(), "61cca5e671cf508291edbacd")
-	require.Error(t, err)
-	require.Empty(t, material)
-}
+
 func TestUpdateCourseMaterial(t *testing.T) {
 	err := UpdateCourseMaterial(context.Background(), "61cca5e671cf508291edbacd", "C#", "Idk you bitch!")
 	require.NoError(t, err)
