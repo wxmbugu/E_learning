@@ -43,7 +43,6 @@ func NewSection() []*models.Section {
 }
 
 func createcoursematerial() models.CourseMaterial {
-
 	//ide, _ := primitive.ObjectIDFromHex(id)
 	material := models.CourseMaterial{
 		ID:        primitive.NewObjectID(),
