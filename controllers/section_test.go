@@ -9,7 +9,6 @@ import (
 )
 
 func TestFindSetion(t *testing.T) {
-<<<<<<< HEAD
 	args := createcourse()
 	section := NewSection()
 	argsec := CourseSec{
@@ -53,9 +52,4 @@ func TestDeleteSection(t *testing.T) {
 		require.Error(t, err)
 
 	}
-=======
-	_, err := FindSection(context.Background(), "btuemk", "61d5e29b1f61c9a1dd1f9e7d")
-	require.Error(t, err)
-	
->>>>>>> 323c2ab0bb4ea66a9424d89bd0119f51116147b7
 }
