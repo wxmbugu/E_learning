@@ -23,7 +23,7 @@ func CollectionStudent() *mongo.Collection {
 	if err != nil {
 		log.Fatal(err)
 	}
-	collection := db.OpenCollection(context.Background(), InstructorCollection)
+	collection := db.OpenCollection(context.Background(), StudentCollection)
 	return collection
 }
 
@@ -34,11 +34,10 @@ func CreateStudent(ctx context.Context, student *models.Student) (*models.Studen
 }
 
 // find one course
-func FindStudent(ctx context.Context, id string) (models.Student, error) {
+func FindStudent(ctx context.Context, name string) (models.Student, error) {
 	collection := CollectionStudent()
 	var results models.Student
-	iuud, _ := primitive.ObjectIDFromHex(id)
-	err := collection.FindOne(ctx, bson.M{"_id": iuud}).Decode(&results)
+	err := collection.FindOne(ctx, bson.M{"Username": name}).Decode(&results)
 	if err != nil {
 		// ErrNoDocuments means that the filter did not match any documents in the collection
 		if err == mongo.ErrNoDocuments {

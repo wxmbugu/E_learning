@@ -42,7 +42,7 @@ func TestFindInstructor(t *testing.T) {
 	instructor1, err := CreateInstructor(context.Background(), &args)
 	require.NoError(t, err)
 	require.NotEmpty(t, instructor1)
-	instructor2, err := FindInstructor(context.Background(), instructor1.ID.Hex())
+	instructor2, err := FindInstructor(context.Background(), instructor1.UserName)
 	require.NoError(t, err)
 	require.NotEmpty(t, instructor2)
 	require.Equal(t, instructor1.ID, instructor2.ID)

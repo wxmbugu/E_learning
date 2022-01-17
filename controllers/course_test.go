@@ -35,16 +35,6 @@ func NewSection() []*models.Section {
 	return result
 }
 
-func createcoursematerial() models.CourseMaterial {
-	//ide, _ := primitive.ObjectIDFromHex(id)
-	material := models.CourseMaterial{
-		ID:        primitive.NewObjectID(),
-		Author:    []string{util.RandomAuthor()},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	return material
-}
 func TestCourseCollection(t *testing.T) {
 	collection := CourseCollection()
 	require.NotEmpty(t, collection)
@@ -96,11 +86,16 @@ func TestDeleteCourse(t *testing.T) {
 }
 
 func TestListCourse(t *testing.T) {
-	arg := ListParams{
-		Limit: 10,
-		Skip:  1,
+	course := createcourse()
+	arg, err := CreateCourse(context.Background(), &course)
+	require.NoError(t, err)
+	arg2 := ListCourseParams{
+		Owner: arg.Author,
+		Limit: 1,
+		Skip:  0,
 	}
-	results, err := ListCourses(context.Background(), arg)
+	results, err := ListCourses(context.Background(), arg2)
 	require.NoError(t, err)
 	require.NotNil(t, results)
+	require.NotEmpty(t, results)
 }

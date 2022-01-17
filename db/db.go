@@ -26,6 +26,7 @@ func DBInstance() (*DB, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	db := DB{
 		Client: client,
 	}

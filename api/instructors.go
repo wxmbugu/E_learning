@@ -12,14 +12,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type Studentsignupreq struct {
+type Instructorsignupreq struct {
 	FirstName string `json:"Firstname" binding:"required" `
 	LastName  string `json:"Lastname" binding:"required"`
 	UserName  string `json:"Username" binding:"required,alphanum"`
 	Email     string `json:"Email" binding:"required"`
 	Password  string `json:"Password" binding:"required,min=6"`
 }
-type StudentResp struct {
+type InstructorResp struct {
 	Username  string    `json:"Username"`
 	FirstName string    `json:"Firstname" binding:"required"`
 	LastName  string    `json:"Lastname" binding:"required"`
@@ -27,23 +27,23 @@ type StudentResp struct {
 	CreatedAt time.Time `json:"Created_at"`
 }
 
-func StudentResponse(student models.Student) StudentResp {
-	return StudentResp{
-		Username:  student.UserName,
-		FirstName: student.FirstName,
-		LastName:  student.LastName,
-		Email:     student.Email,
-		CreatedAt: student.CreatedAt,
+func InstructorResponse(instructor models.Instructor) InstructorResp {
+	return InstructorResp{
+		Username:  instructor.UserName,
+		FirstName: instructor.FirstName,
+		LastName:  instructor.LastName,
+		Email:     instructor.Email,
+		CreatedAt: instructor.CreatedAt,
 	}
 }
-func (server *Server) CreateStudent(ctx *gin.Context) {
-	var req Studentsignupreq
+func (server *Server) CreateInstructor(ctx *gin.Context) {
+	var req Instructorsignupreq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	hashpassword, _ := util.HashPassword(req.Password)
-	args := models.Student{
+	args := models.Instructor{
 		ID:        primitive.NewObjectID(),
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
@@ -52,7 +52,7 @@ func (server *Server) CreateStudent(ctx *gin.Context) {
 		Password:  hashpassword,
 		CreatedAt: time.Now(),
 	}
-	student, err := controllers.CreateStudent(ctx, &args)
+	instructor, err := controllers.CreateInstructor(ctx, &args)
 	if err != nil {
 		if we, ok := err.(mongo.WriteException); ok {
 			for _, e := range we.WriteErrors {
@@ -65,27 +65,27 @@ func (server *Server) CreateStudent(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Item not written"})
 		return
 	}
-	resp := StudentResponse(*student)
+	resp := InstructorResponse(*instructor)
 	ctx.JSON(http.StatusOK, resp)
 }
 
-type Studentloginreq struct {
+type Instructorloginreq struct {
 	UserName string `json:"Username" binding:"required,alphanum"`
 	Password string `json:"Password" binding:"required,min=6"`
 }
-type loginStudentResponse struct {
-	AccessToken string      `json:"access_token"`
-	Student     StudentResp `json:"Student"`
+type loginInstructorResponse struct {
+	AccessToken string         `json:"access_token"`
+	Instructor  InstructorResp `json:"Intructor"`
 }
 
-func (server *Server) StudentLogin(ctx *gin.Context) {
-	var req Studentloginreq
+func (server *Server) InstructorLogin(ctx *gin.Context) {
+	var req Instructorloginreq
 
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	student, err := controllers.FindStudent(ctx, req.UserName)
+	instructor, err := controllers.FindInstructor(ctx, req.UserName)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
@@ -94,7 +94,7 @@ func (server *Server) StudentLogin(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err = util.CheckPassword(req.Password, student.Password)
+	err = util.CheckPassword(req.Password, instructor.Password)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -107,9 +107,9 @@ func (server *Server) StudentLogin(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	resp := loginStudentResponse{
+	resp := loginInstructorResponse{
 		AccessToken: token,
-		Student:     StudentResponse(student),
+		Instructor:  InstructorResponse(*instructor),
 	}
 	ctx.JSON(http.StatusOK, resp)
 

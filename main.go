@@ -8,10 +8,13 @@ import (
 )
 
 func main() {
-	server := api.NewServer()
 	env, err := util.LoadConfig()
 	if err != nil {
 		log.Print(err)
+	}
+	server, err := api.NewServer(env)
+	if err != nil {
+		log.Println("Couldn't Start Server!")
 	}
 	server.Start(env.Server_address)
 }

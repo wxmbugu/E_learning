@@ -13,7 +13,6 @@ type Course struct {
 	Description      string             `json:"description" binding:"required" bson:"Description,omitempty"`
 	CreatedAt        time.Time          `json:"created_at" bson:"Created_at"`
 	UpdatedAt        time.Time          `json:"updated_at,omitempty" bson:"Updated_at,omitempty"`
-	CourseMaterialID primitive.ObjectID `json:"CourseMaterialID,omitempty" bson:"CourseMaterialID,omitempty"`
 	Section          []*Section         `json:"Section,omitempty" bson:"Section,omitempty"`
 	StudentsEnrolled []string           `json:"StudentsEnrolled" bson:"StudentsEnrolled,omitempty"`
 }

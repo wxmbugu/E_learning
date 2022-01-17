@@ -47,6 +47,18 @@ func FindCourse(ctx context.Context, id string) (models.Course, error) {
 	}
 	return results, err
 }
+func FindCoursebyName(ctx context.Context, name string) (models.Course, error) {
+	collection := CourseCollection()
+	var results models.Course
+	err := collection.FindOne(ctx, bson.M{"Name": name}).Decode(&results)
+	if err != nil {
+		// ErrNoDocuments means that the filter did not match any documents in the collection
+		if err == mongo.ErrNoDocuments {
+			log.Print("No such document")
+		}
+	}
+	return results, err
+}
 
 type UpdateCourseParams struct {
 	ID          string `bson:"_id,omitempty"`
@@ -60,6 +72,7 @@ func UpdateCourse(ctx context.Context, arg UpdateCourseParams) (*mongo.UpdateRes
 		{Key: "$set", Value: bson.D{{Key: "Name", Value: arg.Name}, {Key: "Description", Value: arg.Description}, {Key: "Updated_at", Value: time.Now()}}},
 	}
 	iuud, _ := primitive.ObjectIDFromHex(arg.ID)
+
 	updateResult, err := collection.UpdateByID(context.TODO(), iuud, update)
 	if err != nil {
 		if we, ok := err.(mongo.WriteException); ok {
@@ -84,8 +97,14 @@ func DeleteCourse(ctx context.Context, id string) error {
 	return err
 }
 
+type ListCourseParams struct {
+	Owner string `json:"owner"`
+	Limit int64
+	Skip  int64
+}
+
 //Find multiple documents
-func ListCourses(ctx context.Context, arg ListParams) ([]models.Course, error) {
+func ListCourses(ctx context.Context, arg ListCourseParams) ([]models.Course, error) {
 	collection := CourseCollection()
 	//check the connection
 
@@ -99,7 +118,7 @@ func ListCourses(ctx context.Context, arg ListParams) ([]models.Course, error) {
 	var results []models.Course
 
 	//Passing the bson.D{{}} as the filter matches  documents in the collection
-	cur, err := collection.Find(ctx, bson.D{{}}, findOptions)
+	cur, err := collection.Find(ctx, bson.D{{Key: "Author", Value: arg.Owner}}, findOptions)
 	if err != nil {
 		log.Fatal(err)
 	}

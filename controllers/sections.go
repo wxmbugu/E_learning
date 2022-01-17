@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/E_learning/models"
+	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -17,8 +18,21 @@ type CourseSec struct {
 	Section []*models.Section `json:"Section,omitempty" bson:"Section,omitempty"`
 }
 
-func AddSection(ctx context.Context, arg CourseSec) (*mongo.UpdateResult, error) {
+var (
+	ErrInvalidUser = errors.New("Account doesn't belong to authenticated user")
+)
+
+func AddSection(ctx context.Context, arg CourseSec, author string) (*mongo.UpdateResult, error) {
 	collection := CourseCollection()
+	course, err := FindCoursebyName(ctx, arg.Name)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Print("No such document")
+		}
+	}
+	if course.Author != author {
+		return nil, ErrInvalidUser
+	}
 	match := bson.M{"Name": arg.Name}
 	change := bson.M{"$push": bson.M{"Section": bson.M{"$each": arg.Section}}}
 	result, err := collection.UpdateOne(ctx, match, change)
@@ -73,19 +87,31 @@ func DeleteSection(ctx context.Context, arg DelSection) (*mongo.UpdateResult, er
 	return result, err
 }
 
-func FindSection(ctx context.Context, name string, id string) (*models.Section, error) {
+func FindSection(ctx context.Context, name string, author string, id string) (*models.Section, error) {
 	var section models.Section
-
 	collection := CourseCollection()
 	iuud, _ := primitive.ObjectIDFromHex(id)
-	filter := bson.M{"Name": name, "Section._id": iuud}
-	err := collection.FindOne(ctx, filter).Decode(&section)
+	course, err := FindCoursebyName(ctx, name)
 	if err != nil {
-		// ErrNoDocuments means that the filter did not match any documents in the collection
 		if err == mongo.ErrNoDocuments {
 			log.Print("No such document")
 		}
 	}
-	fmt.Println(section)
+	if course.Author != author {
+		return nil, ErrInvalidUser
+	}
+	filter := bson.M{"Author": course.Author, "Section._id": iuud}
+	for _, sec := range course.Section {
+		err = collection.FindOne(ctx, filter).Decode(&sec)
+		// err = collection.Find(ctx,bson.M{"categories": bson.M{"$elemMatch": bson.M{"slug": "general"}}}).One(&section)
+		if err != nil {
+			// ErrNoDocuments means that the filter did not match any documents in the collection
+			if err == mongo.ErrNoDocuments {
+				log.Print("No such document")
+			}
+		}
+		section = *sec
+	}
+
 	return &section, err
 }

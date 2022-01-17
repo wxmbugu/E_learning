@@ -42,7 +42,7 @@ func TestFindStudent(t *testing.T) {
 	student1, err := CreateStudent(context.Background(), &args)
 	require.NoError(t, err)
 	require.NotEmpty(t, student1)
-	student2, err := FindStudent(context.Background(), student1.ID.Hex())
+	student2, err := FindStudent(context.Background(), student1.UserName)
 	require.NoError(t, err)
 	require.NotEmpty(t, student2)
 	require.Equal(t, student1.ID, student2.ID)
@@ -87,10 +87,9 @@ func TestDeleteStudent(t *testing.T) {
 func TestListStudent(t *testing.T) {
 	args := ListParams{
 		Limit: 1,
-		Skip:  10,
+		Skip:  5,
 	}
 	results, err := ListStudents(context.Background(), args)
 	require.NoError(t, err)
-	require.NotNil(t, results)
 	require.NotEmpty(t, results)
 }

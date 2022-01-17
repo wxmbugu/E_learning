@@ -18,8 +18,3 @@ type Student struct {
 	CreatedAt    time.Time          `json:"Created_at" bson:"Created_at"`
 	UpdatedAt    time.Time          `json:"Updated_at" bson:"Updated_at,omitempty"`
 }
-
-type Roles struct {
-	Role string `json:"role" bson:"role,omitempty"`
-	Db   string `json:"db" bson:"db,omitempty"`
-}

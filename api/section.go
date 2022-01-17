@@ -6,6 +6,7 @@ import (
 
 	"github.com/E_learning/controllers"
 	"github.com/E_learning/models"
+	"github.com/E_learning/token"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,10 +27,21 @@ func (server *Server) AddSection(ctx *gin.Context) {
 		v.ID = primitive.NewObjectID()
 	}
 	fmt.Println(req)
-	result, err := controllers.AddSection(ctx, req)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
+		return
+	}
+	result, err := controllers.AddSection(ctx, req, instructor.UserName)
+	if err != nil {
+		if err == controllers.ErrInvalidUser {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": err})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
+
 	}
 	ctx.JSON(http.StatusOK, result)
 }
@@ -59,16 +71,30 @@ func (server *Server) updateSection(ctx *gin.Context) {
 		Title:   req.Title,
 		Content: req.Content,
 	}
-	_, err := controllers.FindSection(ctx, req.Name, req.Id)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
+		return
+	}
+	_, err = controllers.FindSection(ctx, req.Name, instructor.UserName, req.Id)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
+			return
+		}
+		if err == controllers.ErrInvalidUser {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not Found!"})
 			return
 		}
 	} else {
 		result, err := controllers.UpdateSection(ctx, req.Name, &upd)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if result.ModifiedCount == 0 {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
 			return
 		}
 		ctx.JSON(http.StatusOK, result)
@@ -91,16 +117,30 @@ func (server *Server) DeleteSection(ctx *gin.Context) {
 		Name: req.Name,
 		Id:   req.Id,
 	}
-	_, err := controllers.FindSection(ctx, req.Name, req.Id)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
+		return
+	}
+	_, err = controllers.FindSection(ctx, req.Name, instructor.UserName, req.Id)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
+			return
+		}
+		if err == controllers.ErrInvalidUser {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not Found!"})
 			return
 		}
 	} else {
 		result, err := controllers.DeleteSection(ctx, del)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if result.ModifiedCount == 0 {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
 			return
 		}
 		ctx.JSON(http.StatusOK, result)

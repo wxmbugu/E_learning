@@ -34,11 +34,10 @@ func CreateInstructor(ctx context.Context, instructor *models.Instructor) (*mode
 }
 
 // find one course
-func FindInstructor(ctx context.Context, id string) (*models.Instructor, error) {
+func FindInstructor(ctx context.Context, username string) (*models.Instructor, error) {
 	collection := CollectionInstructor()
 	var results models.Instructor
-	iuud, _ := primitive.ObjectIDFromHex(id)
-	err := collection.FindOne(ctx, bson.M{"_id": iuud}).Decode(&results)
+	err := collection.FindOne(ctx, bson.M{"Username": username}).Decode(&results)
 	if err != nil {
 		// ErrNoDocuments means that the filter did not match any documents in the collection
 		if err == mongo.ErrNoDocuments {
