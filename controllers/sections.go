@@ -19,7 +19,8 @@ type CourseSec struct {
 }
 
 var (
-	ErrInvalidUser = errors.New("Account doesn't belong to authenticated user")
+	ErrInvalidUser    = errors.New("Account doesn't belong to authenticated user")
+	ErrNoSuchDocument = errors.New("No such document")
 )
 
 func AddSection(ctx context.Context, arg CourseSec, author string) (*mongo.UpdateResult, error) {
@@ -27,7 +28,7 @@ func AddSection(ctx context.Context, arg CourseSec, author string) (*mongo.Updat
 	course, err := FindCoursebyName(ctx, arg.Name)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			log.Print("No such document")
+			return nil, ErrNoSuchDocument
 		}
 	}
 	if course.Author != author {
