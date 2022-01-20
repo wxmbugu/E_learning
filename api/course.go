@@ -1,14 +1,16 @@
 package api
 
 import (
-	"errors"
+	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/E_learning/controllers"
 	"github.com/E_learning/models"
-	"github.com/E_learning/token"
+	sess "github.com/E_learning/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -28,8 +30,8 @@ func (server *Server) createCourse(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
+	username := sess.SessionStart().Get("username", ctx)
+	instructor, err := controllers.FindInstructor(ctx, username.(string))
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
@@ -55,6 +57,8 @@ func (server *Server) createCourse(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, course)
+	log.Println("Remove data from Redis")
+	server.redisClient.Del("Courses")
 }
 
 type getCourseRequest struct {
@@ -68,29 +72,31 @@ func (server *Server) deleteCourse(ctx *gin.Context) {
 		return
 	}
 
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
+	username := sess.SessionStart().Get("username", ctx)
+	instructor, err := controllers.FindInstructor(ctx, username.(string))
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
 	}
 	course, err := controllers.FindCourse(ctx, req.ID)
-	if instructor.UserName != course.Author {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "account doesn't belong to the authenticated user"})
-		return
-	}
 	if err != nil {
-
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
 			return
 		}
+
+	}
+	if course.Author != instructor.UserName {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "account doesn't belong to the authenticated user"})
+		return
 	} else {
 		err = controllers.DeleteCourse(ctx, req.ID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong couldn't delete"})
 			return
 		}
+		log.Println("Remove data from Redis")
+		server.redisClient.Del("Courses")
 		ctx.JSON(http.StatusOK, "Delete Course Successfull!")
 	}
 }
@@ -108,12 +114,6 @@ func (server *Server) findCourse(ctx *gin.Context) {
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong couldn't fetch data"})
-		return
-	}
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	if course.Author != authPayload.Username {
-		err := errors.New("account doesn't belong to the authenticated user")
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err})
 		return
 	}
 	ctx.JSON(http.StatusOK, course)
@@ -140,8 +140,8 @@ func (server *Server) updateCourse(ctx *gin.Context) {
 		Name:        req.Name,
 		Description: req.Description,
 	}
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
+	username := sess.SessionStart().Get("username", ctx)
+	instructor, err := controllers.FindInstructor(ctx, username.(string))
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
@@ -170,6 +170,8 @@ func (server *Server) updateCourse(ctx *gin.Context) {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong!"})
 			return
 		}
+		log.Println("Remove data from Redis")
+		server.redisClient.Del("Courses")
 		ctx.JSON(http.StatusOK, results)
 	}
 }
@@ -182,12 +184,13 @@ type listCoursesRequest struct {
 
 func (server *Server) listCourses(ctx *gin.Context) {
 	var req listCoursesRequest
+
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
+	username := sess.SessionStart().Get("username", ctx)
+	instructor, err := controllers.FindInstructor(ctx, username.(string))
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
@@ -197,11 +200,25 @@ func (server *Server) listCourses(ctx *gin.Context) {
 		Limit: req.PageSize,
 		Skip:  (req.PageID - 1) * req.PageSize,
 	}
-
-	results, err := controllers.ListCourses(ctx, arg)
-	if err != nil {
+	val, err := server.redisClient.Get("Courses").Result()
+	if err == redis.Nil {
+		log.Printf("Request to MongoDB")
+		cacheresults, err := controllers.ListCourses(ctx, arg)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		data, _ := json.Marshal(cacheresults)
+		server.redisClient.Set("Courses", string(data), 0)
+		ctx.JSON(http.StatusOK, cacheresults)
+	} else if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
+	} else {
+		log.Printf("Request to Redis")
+		courses := make([]models.Course, 0)
+		json.Unmarshal([]byte(val), &courses)
+		ctx.JSON(http.StatusOK, courses)
 	}
-	ctx.JSON(http.StatusOK, results)
+
 }

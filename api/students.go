@@ -6,6 +6,7 @@ import (
 
 	"github.com/E_learning/controllers"
 	"github.com/E_learning/models"
+	sess "github.com/E_learning/sessions"
 	"github.com/E_learning/util"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -74,8 +75,7 @@ type Studentloginreq struct {
 	Password string `json:"Password" binding:"required,min=6"`
 }
 type loginStudentResponse struct {
-	AccessToken string      `json:"access_token"`
-	Student     StudentResp `json:"Student"`
+	Student StudentResp `json:"Student"`
 }
 
 func (server *Server) StudentLogin(ctx *gin.Context) {
@@ -99,18 +99,12 @@ func (server *Server) StudentLogin(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	token, err := server.tokenMaker.CreateToken(
-		req.UserName,
-		server.config.Tokenduration,
-	)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+
+	//x := session.Get("username")
+	_ = sess.SessionStart().Set(student.UserName, ctx)
+	_ = loginStudentResponse{
+		Student: StudentResponse(student),
 	}
-	resp := loginStudentResponse{
-		AccessToken: token,
-		Student:     StudentResponse(student),
-	}
-	ctx.JSON(http.StatusOK, resp)
+	ctx.JSON(http.StatusOK, "Logged In")
 
 }
