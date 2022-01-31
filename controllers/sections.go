@@ -45,10 +45,11 @@ func AddSection(ctx context.Context, arg CourseSec, author string) (*mongo.Updat
 	return result, err
 }
 
-func UpdateSection(ctx context.Context, name string, arg *models.Section) (*mongo.UpdateResult, error) {
+func UpdateSection(ctx context.Context, name string, id string, arg *models.Section) (*mongo.UpdateResult, error) {
 	collection := CourseCollection()
 	filter := bson.D{primitive.E{Key: "Name", Value: name}}
-	arrayFilters := options.ArrayFilters{Filters: bson.A{bson.M{"x._id": arg.ID}}}
+	iuud, _ := primitive.ObjectIDFromHex(id)
+	arrayFilters := options.ArrayFilters{Filters: bson.A{bson.M{"x._id": iuud}}}
 	upsert := true
 	opts := options.UpdateOptions{
 		ArrayFilters: &arrayFilters,
@@ -56,8 +57,7 @@ func UpdateSection(ctx context.Context, name string, arg *models.Section) (*mong
 	}
 	update := bson.M{
 		"$set": bson.M{
-			"Section.$[x].Title":   arg.Title,
-			"Section.$[x].Content": arg.Content,
+			"Section.$[x].Title": arg.Title,
 		},
 	}
 	result, err := collection.UpdateOne(ctx, filter, update, &opts)
@@ -96,7 +96,9 @@ func FindSection(ctx context.Context, name string, author string, id string) (*m
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Print("No such document")
+			return nil, err
 		}
+		log.Fatal(err)
 	}
 	if course.Author != author {
 		return nil, ErrInvalidUser
@@ -109,10 +111,45 @@ func FindSection(ctx context.Context, name string, author string, id string) (*m
 			// ErrNoDocuments means that the filter did not match any documents in the collection
 			if err == mongo.ErrNoDocuments {
 				log.Print("No such document")
+				return nil, err
 			}
+			log.Fatal(err)
+
+		}
+		section = *sec
+	}
+	fmt.Println(section)
+	return &section, nil
+}
+func FindSectionbyTitle(ctx context.Context, name string, author string, sectiontitle string) (*models.Section, error) {
+	var section models.Section
+	collection := CourseCollection()
+	course, err := FindCoursebyName(ctx, name)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Print("No such document")
+			return nil, err
+		}
+		log.Fatal(err)
+	}
+	if course.Author != author {
+		return nil, ErrInvalidUser
+	}
+	filter := bson.M{"Author": course.Author, "Section.Title": sectiontitle}
+	for _, sec := range course.Section {
+		err = collection.FindOne(ctx, filter).Decode(&sec)
+		// err = collection.Find(ctx,bson.M{"categories": bson.M{"$elemMatch": bson.M{"slug": "general"}}}).One(&section)
+		if err != nil {
+			// ErrNoDocuments means that the filter did not match any documents in the collection
+			if err == mongo.ErrNoDocuments {
+				log.Print("No such document")
+				return nil, err
+			}
+			log.Fatal(err)
+
 		}
 		section = *sec
 	}
 
-	return &section, err
+	return &section, nil
 }

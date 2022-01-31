@@ -19,6 +19,12 @@ type Course struct {
 
 type Section struct {
 	ID      primitive.ObjectID `bson:"_id" `
-	Title   string             `json:"Title" binding:"required" bson:"Title,omitempty"`
-	Content string             `json:"Content" binding:"required" bson:"Content,omitempty"`
+	Title   string             `json:"Title" bson:"Title,omitempty"`
+	Content []*Content         `json:"Content" binding:"required" bson:"Content,omitempty"`
+}
+
+type Content struct {
+	ID       primitive.ObjectID `bson:"subsectionid" `
+	SubTitle string             `json:"Subsection_Title" bson:"Subsection_Title,omitempty"`
+	Content  string             `json:"SubContent" bson:"SubContent,omitempty"`
 }

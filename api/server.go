@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	//	sess "github.com/E_learning/sessions"
+
 	"github.com/E_learning/token"
 	"github.com/E_learning/util"
 	"github.com/gin-contrib/sessions"
@@ -55,7 +56,6 @@ func (server *Server) Routes() {
 	router.POST("/instructor/login", server.InstructorLogin)
 	router.POST("/student/login", server.StudentLogin)
 	authroute := router.Group("/").Use(sessionMiddleware())
-
 	authroute.POST("/course", server.createCourse)
 	authroute.DELETE("/course/delete/:id", server.deleteCourse)
 	authroute.GET("/course/:id", server.findCourse)
@@ -64,6 +64,10 @@ func (server *Server) Routes() {
 	authroute.POST("/course/:name", server.AddSection)
 	authroute.POST("/course/:name/updatesection/:id", server.updateSection)
 	authroute.DELETE("/course/:name/deletesection/:id", server.DeleteSection)
+	authroute.POST("/course/:name/:sectionid", server.CreateSubSection)
+	authroute.GET("/courses/:name/section/:subsectionid", server.GetSubSection)
+	authroute.POST("/course/:name/update/:sectiontitle/:subsectionid", server.UpdateSubSection)
+	authroute.DELETE("/course/:name/delete/:sectiontitle/:subsectionid", server.DeleteSubSection)
 	authroute.POST("/logout", server.logout)
 	server.router = router
 }

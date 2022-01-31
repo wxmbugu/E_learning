@@ -26,10 +26,15 @@ func createcourse() models.Course {
 }
 func NewSection() []*models.Section {
 	result := []*models.Section{}
+	content := models.Content{
+		ID:       primitive.NewObjectID(),
+		SubTitle: util.RandomString(10),
+		Content:  util.RandomString(80),
+	}
 	section := models.Section{
 		ID:      primitive.NewObjectID(),
 		Title:   util.RandomString(10),
-		Content: util.RandomString(1000),
+		Content: []*models.Content{&content},
 	}
 	result = append(result, &section)
 	return result
