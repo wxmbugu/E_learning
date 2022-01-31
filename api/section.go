@@ -54,10 +54,9 @@ func (server *Server) AddSection(ctx *gin.Context) {
 }
 
 type UpdateSectionreq struct {
-	Name    string `uri:"name" binding:"required"`
-	Id      string `uri:"id" binding:"required"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
+	Name  string `uri:"name" binding:"required"`
+	Id    string `uri:"id" binding:"required"`
+	Title string `json:"Title"`
 }
 
 func (server *Server) updateSection(ctx *gin.Context) {
@@ -74,9 +73,8 @@ func (server *Server) updateSection(ctx *gin.Context) {
 	iuud, _ := primitive.ObjectIDFromHex(req.Id)
 
 	upd := models.Section{
-		ID:      iuud,
-		Title:   req.Title,
-		Content: req.Content,
+		ID:    iuud,
+		Title: req.Title,
 	}
 	username := sess.SessionStart().Get("username", ctx)
 	instructor, err := controllers.FindInstructor(ctx, username.(string))
@@ -95,7 +93,7 @@ func (server *Server) updateSection(ctx *gin.Context) {
 			return
 		}
 	} else {
-		result, err := controllers.UpdateSection(ctx, req.Name, &upd)
+		result, err := controllers.UpdateSection(ctx, req.Id, req.Name, &upd)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -154,6 +152,6 @@ func (server *Server) DeleteSection(ctx *gin.Context) {
 		}
 		log.Println("Remove data from Redis")
 		server.redisClient.Del("Courses")
-		ctx.JSON(http.StatusOK, result)
+		ctx.JSON(http.StatusOK, "Deleted successfully!")
 	}
 }

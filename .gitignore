@@ -1,1 +1,5 @@
-*.env
+*.apache-benchmark.p
+*.benchmark.png
+*.dump.rdb
+*.with-cache.data
+*.without-cache.data
