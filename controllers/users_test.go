@@ -12,10 +12,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func createInstructorModel() models.Instructor {
+func createInstructorModel() models.User {
 	password := util.RandomString(6)
 	hashpassword, _ := util.HashPassword(password)
-	return models.Instructor{
+	return models.User{
 		ID:        primitive.NewObjectID(),
 		FirstName: util.RandomString(6),
 		LastName:  util.RandomString(6),

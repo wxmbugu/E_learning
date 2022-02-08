@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Student struct {
+type User struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty"`
 	FirstName    string             `json:"Firstname" binding:"required" bson:"Firstname,omitempty"`
 	LastName     string             `json:"Lastname" binding:"required" bson:"Lastname"`
@@ -16,5 +16,10 @@ type Student struct {
 	CoursesTaken []string           `json:"Courses_taken,omitempty" bson:"Courses_taken,omitempty"`
 	Roles        []Roles            `bson:"Roles,omitempty"`
 	CreatedAt    time.Time          `json:"Created_at" bson:"Created_at"`
-	UpdatedAt    time.Time          `json:"Updated_at" bson:"Updated_at,omitempty"`
+	UpdatedAt    time.Time          `json:"Updated_at,omitempty" bson:"Updated_at,omitempty"`
+}
+
+type Roles struct {
+	Role string `json:"role" bson:"role,omitempty"`
+	Db   string `json:"db" bson:"db,omitempty"`
 }

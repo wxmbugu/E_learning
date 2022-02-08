@@ -16,21 +16,6 @@ func FindContent(ctx context.Context, name string, subsectionid string) (*models
 	var content models.Content
 	collection := CourseCollection()
 	iuud, _ := primitive.ObjectIDFromHex(subsectionid)
-	/*
-		section, err := FindSectionbyTitle(ctx, name, author, sectiontitle)
-		if err != nil {
-			if err == mongo.ErrNoDocuments {
-				log.Print("No such document")
-				return nil, err
-			}
-			if err == ErrInvalidUser {
-				log.Print("Not authorised")
-				return nil, err
-			}
-			log.Fatal(err)
-		}
-	*/
-	//var pipeline interface{}
 	pipeline := []bson.M{
 		{"$match": bson.M{"Name": name}},
 		{"$unwind": "$Section"},
@@ -42,7 +27,6 @@ func FindContent(ctx context.Context, name string, subsectionid string) (*models
 			"_id":              "$Section.Content.subsectionid",
 		}},
 	}
-
 	iter, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
 

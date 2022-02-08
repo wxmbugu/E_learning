@@ -8,7 +8,7 @@ import (
 
 	"github.com/E_learning/controllers"
 	"github.com/E_learning/models"
-	sess "github.com/E_learning/sessions"
+	"github.com/E_learning/token"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -30,8 +30,8 @@ func (server *Server) createCourse(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	username := sess.SessionStart().Get("username", ctx)
-	instructor, err := controllers.FindInstructor(ctx, username.(string))
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
@@ -72,12 +72,7 @@ func (server *Server) deleteCourse(ctx *gin.Context) {
 		return
 	}
 
-	username := sess.SessionStart().Get("username", ctx)
-	instructor, err := controllers.FindInstructor(ctx, username.(string))
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
-		return
-	}
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	course, err := controllers.FindCourse(ctx, req.ID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -86,7 +81,7 @@ func (server *Server) deleteCourse(ctx *gin.Context) {
 		}
 
 	}
-	if course.Author != instructor.UserName {
+	if course.Author != authPayload.Username {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "account doesn't belong to the authenticated user"})
 		return
 	} else {
@@ -140,8 +135,8 @@ func (server *Server) updateCourse(ctx *gin.Context) {
 		Name:        req.Name,
 		Description: req.Description,
 	}
-	username := sess.SessionStart().Get("username", ctx)
-	instructor, err := controllers.FindInstructor(ctx, username.(string))
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
@@ -189,8 +184,8 @@ func (server *Server) listCourses(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	username := sess.SessionStart().Get("username", ctx)
-	instructor, err := controllers.FindInstructor(ctx, username.(string))
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return

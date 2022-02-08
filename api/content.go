@@ -6,7 +6,7 @@ import (
 
 	"github.com/E_learning/controllers"
 	"github.com/E_learning/models"
-	sess "github.com/E_learning/sessions"
+	"github.com/E_learning/token"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -21,7 +21,7 @@ func (server *Server) CreateSubSection(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	username := sess.SessionStart().Get("username", ctx)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	course, err := controllers.FindCoursebyName(ctx, req.CourseName)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -29,11 +29,11 @@ func (server *Server) CreateSubSection(ctx *gin.Context) {
 			return
 		}
 	}
-	if course.Author != username.(string) {
+	if course.Author != authPayload.Username {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": controllers.ErrInvalidUser})
 		return
 	} else {
-		result, err := controllers.AddContent(ctx, req, username.(string))
+		result, err := controllers.AddContent(ctx, req, authPayload.Username)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -66,7 +66,7 @@ func (server *Server) UpdateSubSection(ctx *gin.Context) {
 		SubTitle: req.SubSectionTitle,
 		Content:  req.Content,
 	}
-	username := sess.SessionStart().Get("username", ctx)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	course, err := controllers.FindCoursebyName(ctx, req.Name)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -76,7 +76,7 @@ func (server *Server) UpdateSubSection(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	if course.Author != username.(string) {
+	if course.Author != authPayload.Username {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": controllers.ErrInvalidUser})
 		return
 	} else {
@@ -112,7 +112,7 @@ func (server *Server) DeleteSubSection(ctx *gin.Context) {
 		CourseName:   req.CourseName,
 		SubsectionId: req.SubsectionId,
 	}
-	username := sess.SessionStart().Get("username", ctx)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	course, err := controllers.FindCoursebyName(ctx, req.CourseName)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -122,7 +122,7 @@ func (server *Server) DeleteSubSection(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	if course.Author != username.(string) {
+	if course.Author != authPayload.Username {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": controllers.ErrInvalidUser})
 		return
 	} else {

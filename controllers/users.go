@@ -14,40 +14,40 @@ import (
 )
 
 const (
-	StudentCollection = "Students"
+	InstructorCollection = "Instructors"
 )
 
 //creates the course collection
-func CollectionStudent() *mongo.Collection {
+func CollectionInstructor() *mongo.Collection {
 	db, err := db.DBInstance()
 	if err != nil {
 		log.Fatal(err)
 	}
-	collection := db.OpenCollection(context.Background(), StudentCollection)
+	collection := db.OpenCollection(context.Background(), InstructorCollection)
 	return collection
 }
 
-func CreateStudent(ctx context.Context, student *models.Student) (*models.Student, error) {
-	collection := CollectionStudent()
-	_, err := collection.InsertOne(ctx, student)
-	return student, err
+func CreateInstructor(ctx context.Context, instructor *models.User) (*models.User, error) {
+	collection := CollectionInstructor()
+	_, err := collection.InsertOne(ctx, instructor)
+	return instructor, err
 }
 
 // find one course
-func FindStudent(ctx context.Context, name string) (models.Student, error) {
-	collection := CollectionStudent()
-	var results models.Student
-	err := collection.FindOne(ctx, bson.M{"Username": name}).Decode(&results)
+func FindInstructor(ctx context.Context, username string) (*models.User, error) {
+	collection := CollectionInstructor()
+	var results models.User
+	err := collection.FindOne(ctx, bson.M{"Username": username}).Decode(&results)
 	if err != nil {
 		// ErrNoDocuments means that the filter did not match any documents in the collection
 		if err == mongo.ErrNoDocuments {
 			log.Print("No such document")
 		}
 	}
-	return results, err
+	return &results, err
 }
 
-type UpdateStudentParams struct {
+type UpdateInstructorParams struct {
 	ID        string    `bson:"_id,omitempty"`
 	FirstName string    `json:"Firstname" binding:"required" bson:"Firstname,omitempty"`
 	LastName  string    `json:"Lastname" binding:"required" bson:"Lastname"`
@@ -57,8 +57,8 @@ type UpdateStudentParams struct {
 	UpdatedAt time.Time `json:"Updated_at,omitempty" bson:"Updated_at,omitempty"`
 }
 
-func UpdateStudent(ctx context.Context, arg UpdateStudentParams) (*mongo.UpdateResult, error) {
-	collection := CollectionStudent()
+func UpdateInstructor(ctx context.Context, arg UpdateInstructorParams) (*mongo.UpdateResult, error) {
+	collection := CollectionInstructor()
 	update := bson.D{
 		{Key: "$set", Value: bson.D{{Key: "Firstname", Value: arg.FirstName}, {Key: "Lastname", Value: arg.LastName}, {Key: "Username", Value: arg.UserName}, {Key: "Password", Value: arg.Password}, {Key: "Updated_at", Value: time.Now()}}},
 	}
@@ -77,8 +77,8 @@ func UpdateStudent(ctx context.Context, arg UpdateStudentParams) (*mongo.UpdateR
 	return updateResult, err
 }
 
-func DeleteStudent(ctx context.Context, id string) error {
-	collection := CollectionStudent()
+func DeleteInstructor(ctx context.Context, id string) error {
+	collection := CollectionInstructor()
 	iuud, _ := primitive.ObjectIDFromHex(id)
 	_, err := collection.DeleteOne(ctx, bson.M{"_id": iuud})
 	if err != nil {
@@ -87,9 +87,15 @@ func DeleteStudent(ctx context.Context, id string) error {
 	return err
 }
 
+type ListParams struct {
+	//Owner  string `json:"owner"`
+	Limit int64
+	Skip  int64
+}
+
 //Find multiple documents
-func ListStudents(ctx context.Context, arg ListParams) ([]models.Student, error) {
-	collection := CollectionStudent()
+func ListInstructors(ctx context.Context, arg ListParams) ([]models.User, error) {
+	collection := CollectionInstructor()
 	//check the connection
 
 	//find records
@@ -99,7 +105,7 @@ func ListStudents(ctx context.Context, arg ListParams) ([]models.Student, error)
 	findOptions.SetLimit(arg.Limit)
 	findOptions.SetSkip(arg.Skip)
 	//Define an array in which you can store the decoded documents
-	var results []models.Student
+	var results []models.User
 
 	//Passing the bson.D{{}} as the filter matches  documents in the collection
 	cur, err := collection.Find(ctx, bson.D{{}}, findOptions)
@@ -111,7 +117,7 @@ func ListStudents(ctx context.Context, arg ListParams) ([]models.Student, error)
 
 	for cur.Next(ctx) {
 		//Create a value into which the single document can be decoded
-		var elem models.Student
+		var elem models.User
 		err := cur.Decode(&elem)
 		if err != nil {
 			log.Fatal(err)
