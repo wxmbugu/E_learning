@@ -7,7 +7,7 @@ import (
 
 	"github.com/E_learning/controllers"
 	"github.com/E_learning/models"
-	sess "github.com/E_learning/sessions"
+	"github.com/E_learning/token"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,8 +28,8 @@ func (server *Server) AddSection(ctx *gin.Context) {
 		v.ID = primitive.NewObjectID()
 	}
 	fmt.Println(req)
-	username := sess.SessionStart().Get("username", ctx)
-	instructor, err := controllers.FindInstructor(ctx, username.(string))
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
@@ -76,8 +76,8 @@ func (server *Server) updateSection(ctx *gin.Context) {
 		ID:    iuud,
 		Title: req.Title,
 	}
-	username := sess.SessionStart().Get("username", ctx)
-	instructor, err := controllers.FindInstructor(ctx, username.(string))
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
@@ -124,8 +124,8 @@ func (server *Server) DeleteSection(ctx *gin.Context) {
 		Name: req.Name,
 		Id:   req.Id,
 	}
-	username := sess.SessionStart().Get("username", ctx)
-	instructor, err := controllers.FindInstructor(ctx, username.(string))
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return

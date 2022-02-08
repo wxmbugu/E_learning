@@ -2,27 +2,25 @@ package api
 
 import (
 	"fmt"
+	"time"
 
 	//	sess "github.com/E_learning/sessions"
 
 	"github.com/E_learning/token"
 	"github.com/E_learning/util"
-	"github.com/gin-contrib/sessions"
-	redisStore "github.com/gin-contrib/sessions/redis"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 )
 
 type Server struct {
-	config       util.Config
-	tokenMaker   token.Maker
-	redisClient  *redis.Client
-	redisSession *redisStore.Store
-	router       *gin.Engine
+	config      util.Config
+	tokenMaker  token.Maker
+	redisClient *redis.Client
+	router      *gin.Engine
 }
 
 func NewServer(config util.Config) (*Server, error) {
-	store, _ := redisStore.NewStore(10, "tcp", "localhost:6379", "", []byte("secret"))
 	tokenMaker, err := token.NewJWTMaker(config.TokenSymmetrickey)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't Create token")
@@ -34,10 +32,9 @@ func NewServer(config util.Config) (*Server, error) {
 	status := redisClient.Ping()
 	fmt.Println(status)
 	server := Server{
-		config:       config,
-		tokenMaker:   tokenMaker,
-		redisClient:  redisClient,
-		redisSession: &store,
+		config:      config,
+		tokenMaker:  tokenMaker,
+		redisClient: redisClient,
 	}
 	server.Routes()
 
@@ -50,12 +47,18 @@ func (server *Server) Start(address string) error {
 
 func (server *Server) Routes() {
 	router := gin.Default()
-	router.Use(sessions.Sessions("E-learning_api", *server.redisSession))
-	router.POST("/instructor/signup", server.CreateInstructor)
-	router.POST("/signup", server.CreateStudent)
-	router.POST("/instructor/login", server.InstructorLogin)
-	router.POST("/student/login", server.StudentLogin)
-	authroute := router.Group("/").Use(sessionMiddleware())
+	router.Use(cors.Default())
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:8080"},
+		AllowMethods:     []string{"GET", "POST", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+	router.POST("/user/signup", server.CreateInstructor)
+	router.POST("/user/login", server.InstructorLogin)
+	authroute := router.Group("/").Use(authMiddleware(server.tokenMaker))
 	authroute.POST("/course", server.createCourse)
 	authroute.DELETE("/course/delete/:id", server.deleteCourse)
 	authroute.GET("/course/:id", server.findCourse)
@@ -68,6 +71,5 @@ func (server *Server) Routes() {
 	authroute.GET("/courses/:name/section/:subsectionid", server.GetSubSection)
 	authroute.POST("/course/:name/update/:sectiontitle/:subsectionid", server.UpdateSubSection)
 	authroute.DELETE("/course/:name/delete/:sectiontitle/:subsectionid", server.DeleteSubSection)
-	authroute.POST("/logout", server.logout)
 	server.router = router
 }

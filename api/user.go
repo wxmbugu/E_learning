@@ -6,21 +6,20 @@ import (
 
 	"github.com/E_learning/controllers"
 	"github.com/E_learning/models"
-	sess "github.com/E_learning/sessions"
 	"github.com/E_learning/util"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type Studentsignupreq struct {
+type Usersignupreq struct {
 	FirstName string `json:"Firstname" binding:"required" `
 	LastName  string `json:"Lastname" binding:"required"`
 	UserName  string `json:"Username" binding:"required,alphanum"`
 	Email     string `json:"Email" binding:"required"`
 	Password  string `json:"Password" binding:"required,min=6"`
 }
-type StudentResp struct {
+type UserResp struct {
 	Username  string    `json:"Username"`
 	FirstName string    `json:"Firstname" binding:"required"`
 	LastName  string    `json:"Lastname" binding:"required"`
@@ -28,23 +27,23 @@ type StudentResp struct {
 	CreatedAt time.Time `json:"Created_at"`
 }
 
-func StudentResponse(student models.Student) StudentResp {
-	return StudentResp{
-		Username:  student.UserName,
-		FirstName: student.FirstName,
-		LastName:  student.LastName,
-		Email:     student.Email,
-		CreatedAt: student.CreatedAt,
+func UserResponse(instructor models.User) UserResp {
+	return UserResp{
+		Username:  instructor.UserName,
+		FirstName: instructor.FirstName,
+		LastName:  instructor.LastName,
+		Email:     instructor.Email,
+		CreatedAt: instructor.CreatedAt,
 	}
 }
-func (server *Server) CreateStudent(ctx *gin.Context) {
-	var req Studentsignupreq
+func (server *Server) CreateInstructor(ctx *gin.Context) {
+	var req Usersignupreq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	hashpassword, _ := util.HashPassword(req.Password)
-	args := models.Student{
+	args := models.User{
 		ID:        primitive.NewObjectID(),
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
@@ -53,7 +52,7 @@ func (server *Server) CreateStudent(ctx *gin.Context) {
 		Password:  hashpassword,
 		CreatedAt: time.Now(),
 	}
-	student, err := controllers.CreateStudent(ctx, &args)
+	instructor, err := controllers.CreateInstructor(ctx, &args)
 	if err != nil {
 		if we, ok := err.(mongo.WriteException); ok {
 			for _, e := range we.WriteErrors {
@@ -66,26 +65,27 @@ func (server *Server) CreateStudent(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Item not written"})
 		return
 	}
-	resp := StudentResponse(*student)
+	resp := UserResponse(*instructor)
 	ctx.JSON(http.StatusOK, resp)
 }
 
-type Studentloginreq struct {
+type Userloginreq struct {
 	UserName string `json:"Username" binding:"required,alphanum"`
 	Password string `json:"Password" binding:"required,min=6"`
 }
-type loginStudentResponse struct {
-	Student StudentResp `json:"Student"`
+type loginUserResponse struct {
+	AccessToken string   `json:"access_token"`
+	User        UserResp `json:"user"`
 }
 
-func (server *Server) StudentLogin(ctx *gin.Context) {
-	var req Studentloginreq
+func (server *Server) InstructorLogin(ctx *gin.Context) {
+	var req Userloginreq
 
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	student, err := controllers.FindStudent(ctx, req.UserName)
+	user, err := controllers.FindInstructor(ctx, req.UserName)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
@@ -94,17 +94,23 @@ func (server *Server) StudentLogin(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err = util.CheckPassword(req.Password, student.Password)
+	err = util.CheckPassword(req.Password, user.Password)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-
-	//x := session.Get("username")
-	_ = sess.SessionStart().Set(student.UserName, ctx)
-	_ = loginStudentResponse{
-		Student: StudentResponse(student),
+	accessToken, err := server.tokenMaker.CreateToken(
+		user.UserName,
+		server.config.Tokenduration,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
-	ctx.JSON(http.StatusOK, "Logged In")
+	rsp := loginUserResponse{
+		AccessToken: accessToken,
+		User:        UserResponse(*user),
+	}
+	ctx.JSON(http.StatusOK, rsp)
 
 }

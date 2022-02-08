@@ -16,5 +16,8 @@ func main() {
 	if err != nil {
 		log.Println("Couldn't Start Server!")
 	}
-	server.Start(env.Server_address)
+	err = server.Start(env.Server_address)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
