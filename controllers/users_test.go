@@ -87,7 +87,7 @@ func TestDeleteInstructor(t *testing.T) {
 func TestListInstructors(t *testing.T) {
 	args := ListParams{
 		Limit: 1,
-		Skip:  10,
+		Skip:  2,
 	}
 	results, err := ListInstructors(context.Background(), args)
 	require.NoError(t, err)
