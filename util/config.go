@@ -3,6 +3,7 @@ package util
 import (
 	"log"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -16,8 +17,14 @@ type Config struct {
 	Tokenduration     time.Duration
 }
 
+const project_name = "E_learning"
+
 func LoadConfig() (Config, error) {
-	err := godotenv.Load("../.env")
+	re := regexp.MustCompile(`^(.*` + project_name + `)`)
+	cwd, _ := os.Getwd()
+	rootPath := re.Find([]byte(cwd))
+
+	err := godotenv.Load(string(rootPath) + `/.env`)
 	if err != nil {
 		log.Fatal("Error loading .env file", err)
 	}

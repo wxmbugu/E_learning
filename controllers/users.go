@@ -14,28 +14,42 @@ import (
 )
 
 const (
-	InstructorCollection = "Instructors"
+	InstructorCollection = "Users"
 )
 
 //creates the course collection
-func CollectionInstructor() *mongo.Collection {
+func CollectionInstructor(ctx context.Context) *mongo.Collection {
 	db, err := db.DBInstance()
 	if err != nil {
 		log.Fatal(err)
 	}
 	collection := db.OpenCollection(context.Background(), InstructorCollection)
+	_, err = collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys:    bson.M{"Email": 1},
+			Options: options.Index().SetUnique(true),
+		},
+		{
+			Keys:    bson.M{"Username": 1},
+			Options: options.Index().SetUnique(true),
+		},
+	},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return collection
 }
 
 func CreateInstructor(ctx context.Context, instructor *models.User) (*models.User, error) {
-	collection := CollectionInstructor()
+	collection := CollectionInstructor(ctx)
 	_, err := collection.InsertOne(ctx, instructor)
 	return instructor, err
 }
 
 // find one course
 func FindInstructor(ctx context.Context, username string) (*models.User, error) {
-	collection := CollectionInstructor()
+	collection := CollectionInstructor(ctx)
 	var results models.User
 	err := collection.FindOne(ctx, bson.M{"Username": username}).Decode(&results)
 	if err != nil {
@@ -58,7 +72,7 @@ type UpdateInstructorParams struct {
 }
 
 func UpdateInstructor(ctx context.Context, arg UpdateInstructorParams) (*mongo.UpdateResult, error) {
-	collection := CollectionInstructor()
+	collection := CollectionInstructor(ctx)
 	update := bson.D{
 		{Key: "$set", Value: bson.D{{Key: "Firstname", Value: arg.FirstName}, {Key: "Lastname", Value: arg.LastName}, {Key: "Username", Value: arg.UserName}, {Key: "Password", Value: arg.Password}, {Key: "Updated_at", Value: time.Now()}}},
 	}
@@ -78,7 +92,7 @@ func UpdateInstructor(ctx context.Context, arg UpdateInstructorParams) (*mongo.U
 }
 
 func DeleteInstructor(ctx context.Context, id string) error {
-	collection := CollectionInstructor()
+	collection := CollectionInstructor(ctx)
 	iuud, _ := primitive.ObjectIDFromHex(id)
 	_, err := collection.DeleteOne(ctx, bson.M{"_id": iuud})
 	if err != nil {
@@ -95,7 +109,7 @@ type ListParams struct {
 
 //Find multiple documents
 func ListInstructors(ctx context.Context, arg ListParams) ([]models.User, error) {
-	collection := CollectionInstructor()
+	collection := CollectionInstructor(ctx)
 	//check the connection
 
 	//find records

@@ -41,7 +41,7 @@ func NewSection() []*models.Section {
 }
 
 func TestCourseCollection(t *testing.T) {
-	collection := CourseCollection()
+	collection := CourseCollection(context.Background())
 	require.NotEmpty(t, collection)
 }
 

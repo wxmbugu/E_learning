@@ -14,7 +14,7 @@ import (
 
 func FindContent(ctx context.Context, name string, subsectionid string) (*models.Content, error) {
 	var content models.Content
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	iuud, _ := primitive.ObjectIDFromHex(subsectionid)
 	pipeline := []bson.M{
 		{"$match": bson.M{"Name": name}},
@@ -56,7 +56,7 @@ type DelContent struct {
 }
 
 func DeleteContent(ctx context.Context, arg DelContent) (*mongo.UpdateResult, error) {
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	iuud, _ := primitive.ObjectIDFromHex(arg.SubsectionId)
 	filter := bson.D{primitive.E{Key: "Name", Value: arg.CourseName}}
 
@@ -79,7 +79,7 @@ type CourseSubSection struct {
 }
 
 func AddContent(ctx context.Context, arg CourseSubSection, author string) (*mongo.UpdateResult, error) {
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	course, err := FindCoursebyName(ctx, arg.CourseName)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -106,7 +106,7 @@ func AddContent(ctx context.Context, arg CourseSubSection, author string) (*mong
 }
 
 func UpdateSectionContent(ctx context.Context, name string, subsectionid string, sectiontitle string, arg *models.Content) (*mongo.UpdateResult, error) {
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	filter := bson.D{primitive.E{Key: "Name", Value: name}}
 	iuud, _ := primitive.ObjectIDFromHex(subsectionid)
 	arrayFilters := options.ArrayFilters{Filters: bson.A{bson.M{"x.Title": sectiontitle}, bson.M{"y.subsectionid": iuud}}}
