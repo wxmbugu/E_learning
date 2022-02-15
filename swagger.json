@@ -1,0 +1,26 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "This is a sample course API. The courses API is of a udemy-clone project I'm making explore.....",
+    "title": "Courses API",
+    "termsOfService": "there are no TOS at this moment, use at your own risk we take no responsibility",
+    "contact": {
+      "name": "Stephen Wambugu",
+      "url": "https://github.com/Wambug",
+      "email": "wambugumacharia35@gmail.com"
+    },
+    "version": "1.0.0"
+  },
+  "host": "localhost:8000",
+  "basePath": "/",
+  "paths": {}
+}
