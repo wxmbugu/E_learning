@@ -18,7 +18,7 @@ type DB struct {
 func DBInstance() (*DB, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	config, err := util.LoadConfig()
+	config, err := util.LoadConfig("../.")
 	if err != nil {
 		log.Print(err)
 	}
