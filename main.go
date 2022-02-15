@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	env, err := util.LoadConfig()
+	env, err := util.LoadConfig(".")
 	if err != nil {
 		log.Print(err)
 	}
