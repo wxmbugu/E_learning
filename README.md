@@ -9,6 +9,8 @@ In progress
     - check version of swagger -> swagger version
     - generate swagger.json file -> swagger generate spec -o ./swagger.json
     - swagger serve ->  swagger serve ./swagger.json --no-open --port 5000
+    - swagger serve documentation ->  swagger serve -F swagger ./swagger.json --no-open --port 5000
+
 
 
 #### Todo
