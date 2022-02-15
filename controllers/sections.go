@@ -24,7 +24,7 @@ var (
 )
 
 func AddSection(ctx context.Context, arg CourseSec, author string) (*mongo.UpdateResult, error) {
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	course, err := FindCoursebyName(ctx, arg.Name)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -46,7 +46,7 @@ func AddSection(ctx context.Context, arg CourseSec, author string) (*mongo.Updat
 }
 
 func UpdateSection(ctx context.Context, name string, id string, arg *models.Section) (*mongo.UpdateResult, error) {
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	filter := bson.D{primitive.E{Key: "Name", Value: name}}
 	iuud, _ := primitive.ObjectIDFromHex(id)
 	arrayFilters := options.ArrayFilters{Filters: bson.A{bson.M{"x._id": iuud}}}
@@ -73,7 +73,7 @@ type DelSection struct {
 }
 
 func DeleteSection(ctx context.Context, arg DelSection) (*mongo.UpdateResult, error) {
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	filter := bson.D{primitive.E{Key: "Name", Value: arg.Name}}
 	iuud, _ := primitive.ObjectIDFromHex(arg.Id)
 	update := bson.M{
@@ -90,7 +90,7 @@ func DeleteSection(ctx context.Context, arg DelSection) (*mongo.UpdateResult, er
 
 func FindSection(ctx context.Context, name string, author string, id string) (*models.Section, error) {
 	var section models.Section
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	iuud, _ := primitive.ObjectIDFromHex(id)
 	course, err := FindCoursebyName(ctx, name)
 	if err != nil {
@@ -123,7 +123,7 @@ func FindSection(ctx context.Context, name string, author string, id string) (*m
 }
 func FindSectionbyTitle(ctx context.Context, name string, author string, sectiontitle string) (*models.Section, error) {
 	var section models.Section
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	course, err := FindCoursebyName(ctx, name)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

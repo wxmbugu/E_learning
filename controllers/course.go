@@ -18,24 +18,32 @@ const (
 )
 
 //creates the course collection
-func CourseCollection() *mongo.Collection {
+func CourseCollection(ctx context.Context) *mongo.Collection {
 	db, err := db.DBInstance()
 	if err != nil {
 		log.Fatal(err)
 	}
-	collection := db.OpenCollection(context.Background(), collectionCourse)
+	collection := db.OpenCollection(ctx, collectionCourse)
+	_, err = collection.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.M{"Name": 1},
+		Options: options.Index().SetUnique(true),
+	},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return collection
 }
 
 func CreateCourse(ctx context.Context, course *models.Course) (*models.Course, error) {
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	_, err := collection.InsertOne(ctx, course)
 	return course, err
 }
 
 // find one course
 func FindCourse(ctx context.Context, id string) (models.Course, error) {
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	var results models.Course
 	iuud, _ := primitive.ObjectIDFromHex(id)
 	err := collection.FindOne(ctx, bson.M{"_id": iuud}).Decode(&results)
@@ -48,7 +56,7 @@ func FindCourse(ctx context.Context, id string) (models.Course, error) {
 	return results, err
 }
 func FindCoursebyName(ctx context.Context, name string) (models.Course, error) {
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	var results models.Course
 	err := collection.FindOne(ctx, bson.M{"Name": name}).Decode(&results)
 	if err != nil {
@@ -67,7 +75,7 @@ type UpdateCourseParams struct {
 }
 
 func UpdateCourse(ctx context.Context, arg UpdateCourseParams) (*mongo.UpdateResult, error) {
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	update := bson.D{
 		{Key: "$set", Value: bson.D{{Key: "Name", Value: arg.Name}, {Key: "Description", Value: arg.Description}, {Key: "Updated_at", Value: time.Now()}}},
 	}
@@ -88,7 +96,7 @@ func UpdateCourse(ctx context.Context, arg UpdateCourseParams) (*mongo.UpdateRes
 }
 
 func DeleteCourse(ctx context.Context, id string) error {
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	iuud, _ := primitive.ObjectIDFromHex(id)
 	_, err := collection.DeleteOne(ctx, bson.M{"_id": iuud})
 	if err != nil {
@@ -105,7 +113,7 @@ type ListCourseParams struct {
 
 //Find multiple documents
 func ListCourses(ctx context.Context, arg ListCourseParams) ([]models.Course, error) {
-	collection := CourseCollection()
+	collection := CourseCollection(ctx)
 	//check the connection
 
 	//find records
