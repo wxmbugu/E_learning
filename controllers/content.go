@@ -42,7 +42,7 @@ func FindContent(ctx context.Context, name string, subsectionid string) (*models
 	}
 	for _, result := range results {
 		fmt.Printf("SubContent %s Subsection_Title %s  _id %s times\n", result["SubContent"], result["Subsection_Title"], result["_id"])
-		content.Content = result["SubContent"].(string)
+		content.SubContent = result["SubContent"].(string)
 		content.SubTitle = result["Subsection_Title"].(string)
 		content.ID = result["_id"].(primitive.ObjectID)
 	}
@@ -95,7 +95,7 @@ func AddContent(ctx context.Context, arg CourseSubSection, author string) (*mong
 	for _, v := range arg.Content {
 		v.ID = primitive.NewObjectID()
 	}
-	change := bson.M{"$push": bson.M{"Section.$.SubContent": bson.M{"$each": arg.Content}}}
+	change := bson.M{"$push": bson.M{"Section.$.Content": bson.M{"$each": arg.Content}}}
 	result, err := collection.UpdateOne(ctx, match, change)
 	if err != nil {
 		log.Fatal(err)
@@ -118,7 +118,7 @@ func UpdateSectionContent(ctx context.Context, name string, subsectionid string,
 	update := bson.M{
 		"$set": bson.M{
 			"Section.$[x].Content.$[y].Subsection_Title": arg.SubTitle,
-			"Section.$[x].Content.$[y].SubContent":       arg.Content,
+			"Section.$[x].Content.$[y].SubContent":       arg.SubContent,
 		},
 	}
 	result, err := collection.UpdateOne(ctx, filter, update, &opts)

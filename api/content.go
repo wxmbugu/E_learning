@@ -63,8 +63,8 @@ func (server *Server) UpdateSubSection(ctx *gin.Context) {
 		return
 	}
 	upd := models.Content{
-		SubTitle: req.SubSectionTitle,
-		Content:  req.Content,
+		SubTitle:   req.SubSectionTitle,
+		SubContent: req.Content,
 	}
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	course, err := controllers.FindCoursebyName(ctx, req.Name)
