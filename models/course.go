@@ -24,7 +24,7 @@ type Section struct {
 }
 
 type Content struct {
-	ID       primitive.ObjectID `bson:"subsectionid" `
-	SubTitle string             `json:"Subsection_Title" bson:"Subsection_Title,omitempty"`
-	Content  string             `json:"SubContent" bson:"SubContent,omitempty"`
+	ID         primitive.ObjectID `bson:"subsectionid" `
+	SubTitle   string             `json:"Subsection_Title" bson:"Subsection_Title,omitempty"`
+	SubContent string             `json:"SubContent" bson:"SubContent,omitempty"`
 }

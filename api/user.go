@@ -57,7 +57,7 @@ func (server *Server) CreateInstructor(ctx *gin.Context) {
 		if we, ok := err.(mongo.WriteException); ok {
 			for _, e := range we.WriteErrors {
 				if e.Index == 0 {
-					ctx.JSON(http.StatusBadRequest, gin.H{"error": "Username or email already exists"})
+					ctx.JSON(http.StatusBadRequest, gin.H{"error": e.Message})
 					return
 				}
 			}
@@ -70,8 +70,8 @@ func (server *Server) CreateInstructor(ctx *gin.Context) {
 }
 
 type Userloginreq struct {
-	UserName string `json:"Username" binding:"required,alphanum"`
-	Password string `json:"Password" binding:"required,min=6"`
+	UserName string `json:"Username" binding:"required"`
+	Password string `json:"Password" binding:"required"`
 }
 type loginUserResponse struct {
 	AccessToken string   `json:"access_token"`
@@ -82,13 +82,13 @@ func (server *Server) InstructorLogin(ctx *gin.Context) {
 	var req Userloginreq
 
 	if err := ctx.BindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Fill in username and password"})
 		return
 	}
 	user, err := controllers.FindInstructor(ctx, req.UserName)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "No Such Account!"})
 			return
 		}
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -96,7 +96,7 @@ func (server *Server) InstructorLogin(ctx *gin.Context) {
 	}
 	err = util.CheckPassword(req.Password, user.Password)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Login Credentials"})
 		return
 	}
 	accessToken, err := server.tokenMaker.CreateToken(

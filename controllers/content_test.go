@@ -113,8 +113,8 @@ func TestUpdateCourseSubSection(t *testing.T) {
 	require.NotEmpty(t, course)
 	for _, section := range argsec.Section {
 		args := models.Content{
-			SubTitle: util.RandomString(4),
-			Content:  util.RandomString(100),
+			SubTitle:   util.RandomString(4),
+			SubContent: util.RandomString(100),
 		}
 		for _, cont := range section.Content {
 			result, err := UpdateSectionContent(context.Background(), course.Name, cont.ID.Hex(), section.Title, &args)

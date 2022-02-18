@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -27,9 +28,9 @@ func createcourse() models.Course {
 func NewSection() []*models.Section {
 	result := []*models.Section{}
 	content := models.Content{
-		ID:       primitive.NewObjectID(),
-		SubTitle: util.RandomString(10),
-		Content:  util.RandomString(80),
+		ID:         primitive.NewObjectID(),
+		SubTitle:   util.RandomString(10),
+		SubContent: util.RandomString(80),
 	}
 	section := models.Section{
 		ID:      primitive.NewObjectID(),
@@ -37,6 +38,7 @@ func NewSection() []*models.Section {
 		Content: []*models.Content{&content},
 	}
 	result = append(result, &section)
+	fmt.Println(section.ID)
 	return result
 }
 
