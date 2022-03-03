@@ -12,6 +12,10 @@ type Config struct {
 	Server_address    string        `mapstructure:"SERVER_ADDRESS"`
 	TokenSymmetrickey string        `mapstructure:"TOKEN_SYMETRIC_KEY"`
 	Tokenduration     time.Duration `mapstructure:"TOKEN_DURATION"`
+	Awsregion         string        `mapstructure:"AWS_REGION"`
+	Awsaccesskey      string        `mapstructure:"AWS_ACCESS_KEY_ID"`
+	Awssecretkey      string        `mapstructure:"AWS_SECRET_ACCESS_KEY"`
+	Bucketname        string        `mapstructure:"BUCKET_NAME"`
 }
 
 //const project_name = "E_learning"
