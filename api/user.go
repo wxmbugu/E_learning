@@ -16,7 +16,7 @@ type Usersignupreq struct {
 	FirstName string `json:"Firstname" binding:"required" `
 	LastName  string `json:"Lastname" binding:"required"`
 	UserName  string `json:"Username" binding:"required,alphanum"`
-	Email     string `json:"Email" binding:"required"`
+	Email     string `json:"Email" binding:"required,email"`
 	Password  string `json:"Password" binding:"required,min=6"`
 }
 type UserResp struct {

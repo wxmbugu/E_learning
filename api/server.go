@@ -2,13 +2,12 @@ package api
 
 import (
 	"fmt"
-	"time"
 
 	//	sess "github.com/E_learning/sessions"
 
+	"github.com/E_learning/aws"
 	"github.com/E_learning/token"
 	"github.com/E_learning/util"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 )
@@ -47,15 +46,25 @@ func (server *Server) Start(address string) error {
 
 func (server *Server) Routes() {
 	router := gin.Default()
-	router.Use(cors.Default())
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:8080"},
-		AllowMethods:     []string{"GET", "POST", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
+	router.Use(func(ctx *gin.Context) {
+		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		ctx.Writer.Header().Set("Access-Control-Max-Age", "86400")
+		ctx.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+		ctx.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, Authorization")
+		ctx.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
+
+		if ctx.Request.Method == "OPTIONS" {
+			ctx.AbortWithStatus(204)
+		} else {
+			ctx.Next()
+		}
+	})
+	sess := aws.ConnectAws()
+	router.Use(func(ctx *gin.Context) {
+		ctx.Set("sess", sess)
+		ctx.Next()
+	})
+	router.POST("/upload", server.Uploadvideo)
 	router.POST("/user/signup", server.CreateInstructor)
 	router.POST("/user/login", server.InstructorLogin)
 	authroute := router.Group("/").Use(authMiddleware(server.tokenMaker))

@@ -53,7 +53,7 @@ func (server *Server) createCourse(ctx *gin.Context) {
 				}
 			}
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Item not written"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Item wasn't written"})
 		return
 	}
 	ctx.JSON(http.StatusOK, course)
