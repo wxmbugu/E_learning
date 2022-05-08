@@ -1,4 +1,4 @@
-// Courses API
+//Courses API
 //
 // This is a sample course API. The courses API is of a udemy-clone project I'm making explore.....
 // Terms of service:

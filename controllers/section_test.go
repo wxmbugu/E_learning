@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/E_learning/models"
@@ -22,7 +21,6 @@ func TestFindSection(t *testing.T) {
 	require.NotEmpty(t, course)
 	for _, section := range argsec.Section {
 		result, err := FindSection(context.Background(), argsec.Name, course.Author, section.ID.Hex())
-		fmt.Println(result)
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		result1, err := FindSectionbyTitle(context.Background(), argsec.Name, course.Author, result.Title)
@@ -72,7 +70,6 @@ func TestAddSection(t *testing.T) {
 		Section: section,
 	}
 	result, err := AddSection(context.Background(), argsec, course.Author)
-	fmt.Println(result)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 
@@ -93,7 +90,6 @@ func TestUpdateSection(t *testing.T) {
 			Title: util.RandomString(4),
 		}
 		result, err := UpdateSection(context.Background(), course.Name, section.ID.Hex(), &args)
-		fmt.Println(result)
 		require.NoError(t, err)
 		require.NotNil(t, result)
 	}

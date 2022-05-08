@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/E_learning/models"
@@ -27,7 +26,6 @@ func TestFindContent(t *testing.T) {
 		//var id string
 		for _, v := range section.Content {
 			content, err := FindContent(context.Background(), argsec.Name, v.ID.Hex())
-			fmt.Println("gathee", content, v.ID.Hex(), section.ID.Hex(), course.ID.Hex())
 			require.NoError(t, err)
 			require.NotEmpty(t, content)
 			require.Equal(t, content.SubTitle, v.SubTitle)
@@ -67,7 +65,6 @@ func TestDeleteContent(t *testing.T) {
 			_, err := DeleteContent(context.Background(), args)
 			require.NoError(t, err)
 			content2, err := FindContent(context.Background(), argsec.Name, v.ID.Hex())
-			fmt.Println(content2)
 			require.NoError(t, err)
 			require.Empty(t, content2)
 		}
@@ -94,7 +91,6 @@ func TestAddContent(t *testing.T) {
 			Content:    section.Content,
 		}
 		result, err := AddContent(context.Background(), args, course.Author)
-		fmt.Println(args.Id)
 		require.NoError(t, err)
 		require.NotNil(t, result)
 	}
@@ -118,7 +114,6 @@ func TestUpdateCourseSubSection(t *testing.T) {
 		}
 		for _, cont := range section.Content {
 			result, err := UpdateSectionContent(context.Background(), course.Name, cont.ID.Hex(), section.Title, &args)
-			fmt.Println(result)
 			require.NoError(t, err)
 			require.NotNil(t, result)
 		}

@@ -35,13 +35,14 @@ func CourseCollection(ctx context.Context) *mongo.Collection {
 	return collection
 }
 
+//create course
 func CreateCourse(ctx context.Context, course *models.Course) (*models.Course, error) {
 	collection := CourseCollection(ctx)
 	_, err := collection.InsertOne(ctx, course)
 	return course, err
 }
 
-// find one course
+// find one course by id
 func FindCourse(ctx context.Context, id string) (models.Course, error) {
 	collection := CourseCollection(ctx)
 	var results models.Course
@@ -55,6 +56,8 @@ func FindCourse(ctx context.Context, id string) (models.Course, error) {
 	}
 	return results, err
 }
+
+//find course by name
 func FindCoursebyName(ctx context.Context, name string) (models.Course, error) {
 	collection := CourseCollection(ctx)
 	var results models.Course
@@ -74,6 +77,7 @@ type UpdateCourseParams struct {
 	Description string `json:"description" binding:"required" bson:"Description,omitempty"`
 }
 
+//update course
 func UpdateCourse(ctx context.Context, arg UpdateCourseParams) (*mongo.UpdateResult, error) {
 	collection := CourseCollection(ctx)
 	update := bson.D{
@@ -95,6 +99,7 @@ func UpdateCourse(ctx context.Context, arg UpdateCourseParams) (*mongo.UpdateRes
 	return updateResult, err
 }
 
+//delete course
 func DeleteCourse(ctx context.Context, id string) error {
 	collection := CourseCollection(ctx)
 	iuud, _ := primitive.ObjectIDFromHex(id)
@@ -111,7 +116,7 @@ type ListCourseParams struct {
 	Skip  int64
 }
 
-//Find multiple documents
+//Find multiple documents of courses
 func ListCourses(ctx context.Context, arg ListCourseParams) ([]models.Course, error) {
 	collection := CourseCollection(ctx)
 	//check the connection

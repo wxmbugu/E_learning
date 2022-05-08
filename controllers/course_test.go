@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -38,7 +37,6 @@ func NewSection() []*models.Section {
 		Content: []*models.Content{&content},
 	}
 	result = append(result, &section)
-	fmt.Println(section.ID)
 	return result
 }
 
