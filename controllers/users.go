@@ -87,7 +87,6 @@ func UpdateInstructor(ctx context.Context, arg UpdateInstructorParams) (*mongo.U
 			}
 		}
 	}
-	//fmt.Print(updateResult)
 	return updateResult, err
 }
 

@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+//find content of a section in a course
 func FindContent(ctx context.Context, name string, subsectionid string) (*models.Content, error) {
 	var content models.Content
 	collection := CourseCollection(ctx)
@@ -41,12 +42,10 @@ func FindContent(ctx context.Context, name string, subsectionid string) (*models
 		log.Fatal(err)
 	}
 	for _, result := range results {
-		fmt.Printf("SubContent %s Subsection_Title %s  _id %s times\n", result["SubContent"], result["Subsection_Title"], result["_id"])
 		content.SubContent = result["SubContent"].(string)
 		content.SubTitle = result["Subsection_Title"].(string)
 		content.ID = result["_id"].(primitive.ObjectID)
 	}
-	fmt.Println("Content", content)
 	return &content, nil
 }
 
@@ -55,6 +54,7 @@ type DelContent struct {
 	SubsectionId string
 }
 
+//delete content of a section in a course
 func DeleteContent(ctx context.Context, arg DelContent) (*mongo.UpdateResult, error) {
 	collection := CourseCollection(ctx)
 	iuud, _ := primitive.ObjectIDFromHex(arg.SubsectionId)
@@ -78,6 +78,7 @@ type CourseSubSection struct {
 	Content    []*models.Content `json:"Content"`
 }
 
+//add content of a section in a course
 func AddContent(ctx context.Context, arg CourseSubSection, author string) (*mongo.UpdateResult, error) {
 	collection := CourseCollection(ctx)
 	course, err := FindCoursebyName(ctx, arg.CourseName)
@@ -105,6 +106,7 @@ func AddContent(ctx context.Context, arg CourseSubSection, author string) (*mong
 	return result, err
 }
 
+//update content of a section in a course
 func UpdateSectionContent(ctx context.Context, name string, subsectionid string, sectiontitle string, arg *models.Content) (*mongo.UpdateResult, error) {
 	collection := CourseCollection(ctx)
 	filter := bson.D{primitive.E{Key: "Name", Value: name}}

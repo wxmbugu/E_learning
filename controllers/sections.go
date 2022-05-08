@@ -23,6 +23,7 @@ var (
 	ErrNoSuchDocument = errors.New("No such document")
 )
 
+//function to add section to a course
 func AddSection(ctx context.Context, arg CourseSec, author string) (*mongo.UpdateResult, error) {
 	collection := CourseCollection(ctx)
 	course, err := FindCoursebyName(ctx, arg.Name)
@@ -45,6 +46,7 @@ func AddSection(ctx context.Context, arg CourseSec, author string) (*mongo.Updat
 	return result, err
 }
 
+//update course section
 func UpdateSection(ctx context.Context, name string, id string, arg *models.Section) (*mongo.UpdateResult, error) {
 	collection := CourseCollection(ctx)
 	filter := bson.D{primitive.E{Key: "Name", Value: name}}
@@ -72,6 +74,7 @@ type DelSection struct {
 	Id   string
 }
 
+//delete course section
 func DeleteSection(ctx context.Context, arg DelSection) (*mongo.UpdateResult, error) {
 	collection := CourseCollection(ctx)
 	filter := bson.D{primitive.E{Key: "Name", Value: arg.Name}}
@@ -88,6 +91,7 @@ func DeleteSection(ctx context.Context, arg DelSection) (*mongo.UpdateResult, er
 	return result, err
 }
 
+//find course section by id
 func FindSection(ctx context.Context, name string, author string, id string) (*models.Section, error) {
 	var section models.Section
 	collection := CourseCollection(ctx)
@@ -121,6 +125,8 @@ func FindSection(ctx context.Context, name string, author string, id string) (*m
 	fmt.Println(section)
 	return &section, nil
 }
+
+//find course section by title
 func FindSectionbyTitle(ctx context.Context, name string, author string, sectiontitle string) (*models.Section, error) {
 	var section models.Section
 	collection := CourseCollection(ctx)
