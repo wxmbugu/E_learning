@@ -1,0 +1,5 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/steve/go/src/github.com/E_learning'
+docker run -d --name e-learning -p 27017:27017 -v ~/mongodb_data:/data/db mongo
+make: Leaving directory '/home/steve/go/src/github.com/E_learning'
+ 

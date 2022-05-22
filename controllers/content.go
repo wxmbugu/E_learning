@@ -42,8 +42,15 @@ func FindContent(ctx context.Context, name string, subsectionid string) (*models
 		log.Fatal(err)
 	}
 	for _, result := range results {
-		content.SubContent = result["SubContent"].(string)
-		content.SubTitle = result["Subsection_Title"].(string)
+		var ok bool
+		content.SubContent, ok = result["SubContent"].(string)
+		if !ok {
+			content.SubContent = ""
+		}
+		content.SubTitle, ok = result["Subsection_Title"].(string)
+		if !ok {
+			content.SubTitle = ""
+		}
 		content.ID = result["_id"].(primitive.ObjectID)
 	}
 	return &content, nil
