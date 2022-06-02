@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -10,7 +9,6 @@ import (
 	"github.com/E_learning/models"
 	"github.com/E_learning/token"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -102,6 +100,7 @@ func (server *Server) findCourse(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
 	course, err := controllers.FindCourse(ctx, req.ID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -111,7 +110,34 @@ func (server *Server) findCourse(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong couldn't fetch data"})
 		return
 	}
-	ctx.JSON(http.StatusOK, course)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	log.Println(authPayload)
+	if len(course.StudentsEnrolled) <= 0 {
+		if authPayload.Username != course.Author {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
+			return
+		} else {
+			ctx.JSON(http.StatusOK, course)
+			return
+		}
+	} else {
+		if authPayload.Username == course.Author {
+			ctx.JSON(http.StatusOK, course)
+			return
+		} else {
+			user, _ := controllers.FindInstructor(ctx, authPayload.Username)
+			for i := 0; i < len(course.StudentsEnrolled); i++ {
+				log.Println(user.ID.Hex())
+				if course.StudentsEnrolled[i] == user.ID.Hex() {
+					log.Println(course.StudentsEnrolled[i])
+					ctx.JSON(http.StatusOK, course)
+					return
+				}
+
+			}
+		}
+	}
+	ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
 }
 
 type updateCourseRequest struct {
@@ -179,7 +205,6 @@ type listCoursesRequest struct {
 
 func (server *Server) listCourses(ctx *gin.Context) {
 	var req listCoursesRequest
-
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -195,25 +220,25 @@ func (server *Server) listCourses(ctx *gin.Context) {
 		Limit: req.PageSize,
 		Skip:  (req.PageID - 1) * req.PageSize,
 	}
-	val, err := server.redisClient.Get("Courses").Result()
-	if err == redis.Nil {
-		log.Printf("Request to MongoDB")
-		cacheresults, err := controllers.ListCourses(ctx, arg)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		data, _ := json.Marshal(cacheresults)
-		server.redisClient.Set("Courses", string(data), 0)
-		ctx.JSON(http.StatusOK, cacheresults)
-	} else if err != nil {
+	results, err := controllers.ListCourses(ctx, arg)
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
-	} else {
-		log.Printf("Request to Redis")
-		courses := make([]models.Course, 0)
-		json.Unmarshal([]byte(val), &courses)
-		ctx.JSON(http.StatusOK, courses)
 	}
+	ctx.JSON(http.StatusOK, results)
 
+}
+
+type countcoursereq struct {
+	Author string `uri:"author"`
+}
+
+func (server *Server) CountCoursesbyUsers(ctx *gin.Context) {
+	var req countcoursereq
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	totalcourses := controllers.CountCoursesbyAuthor(ctx, req.Author)
+	ctx.JSON(http.StatusOK, totalcourses)
 }
