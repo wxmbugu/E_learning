@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -157,4 +158,59 @@ func ListCourses(ctx context.Context, arg ListCourseParams) ([]models.Course, er
 	//Close the cursor once finished
 	cur.Close(ctx)
 	return results, err
+}
+
+func ListAllCourses(ctx context.Context) ([]models.Course, error) {
+	collection := CourseCollection(ctx)
+
+	var results []models.Course
+
+	cursor, err := collection.Find(ctx, bson.D{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
+		//decode into a struct, user cursor.Decode() but to get all results use cursor.All()
+		if err = cursor.All(ctx, &results); err != nil {
+			log.Fatal(err)
+		}
+	}
+	return results, err
+
+}
+
+func Enroll(ctx context.Context, coursetitle string, userid string) (*mongo.UpdateResult, error) {
+	collection := CourseCollection(ctx)
+	course, err := FindCoursebyName(ctx, coursetitle)
+	fmt.Println(course.Name)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, err
+		}
+		log.Fatal(err)
+	}
+	user, err := FindInstructorbyId(ctx, userid)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, err
+		}
+		log.Fatal(err)
+	}
+	match := bson.M{"Name": coursetitle}
+	change := bson.M{"$push": bson.M{"StudentsEnrolled": user.ID.Hex()}}
+	result, err := collection.UpdateOne(ctx, match, change)
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		fmt.Println("You enrolled to:", course.Name)
+	}
+	return result, err
+}
+
+func CountCoursesbyAuthor(ctx context.Context, author string) int64 {
+	collection := CourseCollection(ctx)
+	count, _ := collection.CountDocuments(ctx, bson.D{{Key: "Author", Value: author}})
+	fmt.Println("No of courses ------->", count)
+	return count
 }

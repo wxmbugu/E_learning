@@ -61,6 +61,20 @@ func FindInstructor(ctx context.Context, username string) (*models.User, error) 
 	return &results, err
 }
 
+func FindInstructorbyId(ctx context.Context, id string) (*models.User, error) {
+	collection := CollectionInstructor(ctx)
+	var results models.User
+	iuud, _ := primitive.ObjectIDFromHex(id)
+	err := collection.FindOne(ctx, bson.M{"_id": iuud}).Decode(&results)
+	if err != nil {
+		// ErrNoDocuments means that the filter did not match any documents in the collection
+		if err == mongo.ErrNoDocuments {
+			log.Print("No such document")
+		}
+	}
+	return &results, err
+}
+
 type UpdateInstructorParams struct {
 	ID        string    `bson:"_id,omitempty"`
 	FirstName string    `json:"Firstname" binding:"required" bson:"Firstname,omitempty"`

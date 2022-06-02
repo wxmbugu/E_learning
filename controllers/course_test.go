@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/E_learning/util"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func createcourse() models.Course {
@@ -96,11 +98,47 @@ func TestListCourse(t *testing.T) {
 	require.NoError(t, err)
 	arg2 := ListCourseParams{
 		Owner: arg.Author,
-		Limit: 1,
-		Skip:  0,
+		//Limit: 1,
+		//Skip:  0,
 	}
 	results, err := ListCourses(context.Background(), arg2)
 	require.NoError(t, err)
 	require.NotNil(t, results)
 	require.NotEmpty(t, results)
+}
+
+func TestListAllCourses(t *testing.T) {
+	course := createcourse()
+	_, err := CreateCourse(context.Background(), &course)
+	require.NoError(t, err)
+	results, err := ListAllCourses(context.Background())
+	require.NoError(t, err)
+	require.NotEmpty(t, results)
+}
+
+func TestEnrollCourse(t *testing.T) {
+	course := createcourse()
+	coursec, err := CreateCourse(context.Background(), &course)
+	fmt.Println(coursec.Name)
+	require.NoError(t, err)
+	require.NotEmpty(t, coursec)
+	user := createInstructorModel()
+	student, err := CreateInstructor(context.Background(), &user)
+	require.NoError(t, err)
+	require.NotEmpty(t, student)
+	result, err := Enroll(context.Background(), coursec.Name, student.ID.Hex())
+	require.NoError(t, err)
+	require.NotEmpty(t, result)
+	_, err = Enroll(context.Background(), "hah", student.ID.String())
+	require.EqualError(t, err, mongo.ErrNoDocuments.Error())
+}
+
+func TestCountCoursesbyAuth(t *testing.T) {
+	course := createcourse()
+	coursec, err := CreateCourse(context.Background(), &course)
+	require.NoError(t, err)
+	require.NotEmpty(t, coursec)
+	number := CountCoursesbyAuthor(context.Background(), course.Author)
+	require.NotEmpty(t, number)
+	require.Equal(t, int64(1), number)
 }

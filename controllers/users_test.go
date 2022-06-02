@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -40,9 +41,10 @@ func TestCreateInstructor(t *testing.T) {
 func TestFindInstructor(t *testing.T) {
 	args := createInstructorModel()
 	instructor1, err := CreateInstructor(context.Background(), &args)
+	fmt.Println(instructor1.ID.String())
 	require.NoError(t, err)
 	require.NotEmpty(t, instructor1)
-	instructor2, err := FindInstructor(context.Background(), instructor1.UserName)
+	instructor2, err := FindInstructorbyId(context.Background(), instructor1.ID.Hex())
 	require.NoError(t, err)
 	require.NotEmpty(t, instructor2)
 	require.Equal(t, instructor1.ID, instructor2.ID)

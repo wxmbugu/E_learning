@@ -68,6 +68,7 @@ func (server *Server) Routes() {
 	router.POST("/user/signup", server.CreateInstructor)
 	router.POST("/user/login", server.InstructorLogin)
 	authroute := router.Group("/").Use(authMiddleware(server.tokenMaker))
+	authroute.GET("/total/:author", server.CountCoursesbyUsers)
 	authroute.POST("/course", server.createCourse)
 	authroute.DELETE("/course/delete/:id", server.deleteCourse)
 	authroute.GET("/course/:id", server.findCourse)

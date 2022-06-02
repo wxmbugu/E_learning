@@ -88,10 +88,6 @@ func (server *Server) updateSection(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
 			return
 		}
-		if err == controllers.ErrInvalidUser {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not Found!"})
-			return
-		}
 	} else {
 		result, err := controllers.UpdateSection(ctx, req.Id, req.Name, &upd)
 		if err != nil {
