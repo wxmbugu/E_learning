@@ -18,25 +18,25 @@ func TestFindContent(t *testing.T) {
 		Section: section,
 	}
 	args.Section = section
-	course, _ := CreateCourse(context.Background(), &args)
+	course, _ := controllers.Course.CreateCourse(context.Background(), &args)
 	for _, section := range argsec.Section {
-		result, err := FindSection(context.Background(), argsec.Name, course.Author, section.ID.Hex())
+		result, err := controllers.Course.FindSection(context.Background(), argsec.Name, course.Author, section.ID.Hex())
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		//var id string
 		for _, v := range section.Content {
-			content, err := FindContent(context.Background(), argsec.Name, v.ID.Hex())
+			content, err := controllers.Course.FindContent(context.Background(), argsec.Name, v.ID.Hex())
 			require.NoError(t, err)
 			require.NotEmpty(t, content)
 			require.Equal(t, content.SubTitle, v.SubTitle)
 			require.Equal(t, v.ID.Hex(), content.ID.Hex())
-			content2, err2 := FindContent(context.Background(), argsec.Name, "1")
+			content2, err2 := controllers.Course.FindContent(context.Background(), argsec.Name, "1")
 			require.NoError(t, err2)
 			require.Empty(t, content2)
 
 		}
 		//require.Equal(t, section.Title, result.Title)
-		_, err = FindSection(context.Background(), "", "", "")
+		_, err = controllers.Course.FindSection(context.Background(), "", "", "")
 		require.EqualError(t, err, mongo.ErrNoDocuments.Error())
 	}
 
@@ -50,10 +50,10 @@ func TestDeleteContent(t *testing.T) {
 		Section: section,
 	}
 	args.Section = section
-	course, _ := CreateCourse(context.Background(), &args)
+	course, _ := controllers.Course.CreateCourse(context.Background(), &args)
 	require.NotEmpty(t, course)
 	for _, section := range argsec.Section {
-		result, err := FindSection(context.Background(), argsec.Name, course.Author, section.ID.Hex())
+		result, err := controllers.Course.FindSection(context.Background(), argsec.Name, course.Author, section.ID.Hex())
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		for _, v := range section.Content {
@@ -62,14 +62,14 @@ func TestDeleteContent(t *testing.T) {
 				SubsectionId: v.ID.Hex(),
 			}
 
-			_, err := DeleteContent(context.Background(), args)
+			_, err := controllers.Course.DeleteContent(context.Background(), args)
 			require.NoError(t, err)
-			content2, err := FindContent(context.Background(), argsec.Name, v.ID.Hex())
+			content2, err := controllers.Course.FindContent(context.Background(), argsec.Name, v.ID.Hex())
 			require.NoError(t, err)
 			require.Empty(t, content2)
 		}
 		//require.Equal(t, section.Title, result.Title)
-		_, err = FindSection(context.Background(), "", "", "")
+		_, err = controllers.Course.FindSection(context.Background(), "", "", "")
 		require.EqualError(t, err, mongo.ErrNoDocuments.Error())
 	}
 }
@@ -82,7 +82,7 @@ func TestAddContent(t *testing.T) {
 		Section: section,
 	}
 	args.Section = section
-	course, _ := CreateCourse(context.Background(), &args)
+	course, _ := controllers.Course.CreateCourse(context.Background(), &args)
 	require.NotEmpty(t, course)
 	for _, section := range argsec.Section {
 		args := CourseSubSection{
@@ -90,7 +90,7 @@ func TestAddContent(t *testing.T) {
 			CourseName: course.Name,
 			Content:    section.Content,
 		}
-		result, err := AddContent(context.Background(), args, course.Author)
+		result, err := controllers.Course.AddContent(context.Background(), args, course.Author)
 		require.NoError(t, err)
 		require.NotNil(t, result)
 	}
@@ -105,7 +105,7 @@ func TestUpdateCourseSubSection(t *testing.T) {
 		Section: section,
 	}
 	args.Section = section
-	course, _ := CreateCourse(context.Background(), &args)
+	course, _ := controllers.Course.CreateCourse(context.Background(), &args)
 	require.NotEmpty(t, course)
 	for _, section := range argsec.Section {
 		args := models.Content{
@@ -113,7 +113,7 @@ func TestUpdateCourseSubSection(t *testing.T) {
 			SubContent: util.RandomString(100),
 		}
 		for _, cont := range section.Content {
-			result, err := UpdateSectionContent(context.Background(), course.Name, cont.ID.Hex(), section.Title, &args)
+			result, err := controllers.Course.UpdateSectionContent(context.Background(), course.Name, cont.ID.Hex(), section.Title, &args)
 			require.NoError(t, err)
 			require.NotNil(t, result)
 		}

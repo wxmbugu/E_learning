@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	//"github.com/E_learning/models"
 	"github.com/E_learning/models"
 	"github.com/E_learning/util"
 	"github.com/stretchr/testify/require"
@@ -29,22 +30,22 @@ func createInstructorModel() models.User {
 
 func TestCreateInstructor(t *testing.T) {
 	args := createInstructorModel()
-	instructor, err := CreateInstructor(context.Background(), &args)
+	instructor, err := controllers.User.CreateInstructor(context.Background(), &args)
 	require.NoError(t, err)
 	require.NotNil(t, instructor)
 	require.WithinDuration(t, instructor.CreatedAt, args.CreatedAt, 10)
-	instructor2, err := CreateInstructor(context.Background(), &args)
+	instructor2, err := controllers.User.CreateInstructor(context.Background(), &args)
 	require.Error(t, err)
 	require.NotNil(t, instructor2)
 }
 
 func TestFindInstructor(t *testing.T) {
 	args := createInstructorModel()
-	instructor1, err := CreateInstructor(context.Background(), &args)
+	instructor1, err := controllers.User.CreateInstructor(context.Background(), &args)
 	fmt.Println(instructor1.ID.String())
 	require.NoError(t, err)
 	require.NotEmpty(t, instructor1)
-	instructor2, err := FindInstructorbyId(context.Background(), instructor1.ID.Hex())
+	instructor2, err := controllers.User.FindInstructorbyId(context.Background(), instructor1.ID.Hex())
 	require.NoError(t, err)
 	require.NotEmpty(t, instructor2)
 	require.Equal(t, instructor1.ID, instructor2.ID)
@@ -58,7 +59,7 @@ func TestFindInstructor(t *testing.T) {
 
 func TestUpdateInstructor(t *testing.T) {
 	args := createInstructorModel()
-	instructor1, err := CreateInstructor(context.Background(), &args)
+	instructor1, err := controllers.User.CreateInstructor(context.Background(), &args)
 	require.NoError(t, err)
 	require.NotEmpty(t, instructor1)
 	updateargs := UpdateInstructorParams{
@@ -69,19 +70,19 @@ func TestUpdateInstructor(t *testing.T) {
 		Email:     util.RandomEmail(),
 		Password:  util.RandomString(10),
 	}
-	result, err := UpdateInstructor(context.Background(), updateargs)
+	result, err := controllers.User.UpdateInstructor(context.Background(), updateargs)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 }
 
 func TestDeleteInstructor(t *testing.T) {
 	args := createInstructorModel()
-	instructor1, err := CreateInstructor(context.Background(), &args)
+	instructor1, err := controllers.User.CreateInstructor(context.Background(), &args)
 	require.NoError(t, err)
 	require.NotEmpty(t, instructor1)
-	err = DeleteInstructor(context.Background(), args.ID.Hex())
+	err = controllers.User.DeleteInstructor(context.Background(), args.ID.Hex())
 	require.NoError(t, err)
-	instructor2, err := FindInstructor(context.Background(), args.ID.Hex())
+	instructor2, err := controllers.User.FindInstructor(context.Background(), args.ID.Hex())
 	require.EqualError(t, err, mongo.ErrNoDocuments.Error())
 	require.Empty(t, instructor2)
 }
@@ -91,7 +92,7 @@ func TestListInstructors(t *testing.T) {
 		Limit: 1,
 		Skip:  2,
 	}
-	results, err := ListInstructors(context.Background(), args)
+	results, err := controllers.User.ListInstructors(context.Background(), args)
 	require.NoError(t, err)
 	require.NotNil(t, results)
 	require.NotEmpty(t, results)

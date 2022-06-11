@@ -29,7 +29,7 @@ func (server *Server) createCourse(ctx *gin.Context) {
 		return
 	}
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
+	instructor, err := server.Controller.User.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
@@ -41,7 +41,7 @@ func (server *Server) createCourse(ctx *gin.Context) {
 		Description: req.Description,
 		CreatedAt:   time.Now(),
 	}
-	course, err := controllers.CreateCourse(ctx, &args)
+	course, err := server.Controller.Course.CreateCourse(ctx, &args)
 	if err != nil {
 		if we, ok := err.(mongo.WriteException); ok {
 			for _, e := range we.WriteErrors {
@@ -71,7 +71,7 @@ func (server *Server) deleteCourse(ctx *gin.Context) {
 	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	course, err := controllers.FindCourse(ctx, req.ID)
+	course, err := server.Controller.Course.FindCourse(ctx, req.ID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
@@ -83,7 +83,7 @@ func (server *Server) deleteCourse(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "account doesn't belong to the authenticated user"})
 		return
 	} else {
-		err = controllers.DeleteCourse(ctx, req.ID)
+		err = server.Controller.Course.DeleteCourse(ctx, req.ID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong couldn't delete"})
 			return
@@ -101,7 +101,7 @@ func (server *Server) findCourse(ctx *gin.Context) {
 		return
 	}
 
-	course, err := controllers.FindCourse(ctx, req.ID)
+	course, err := server.Controller.Course.FindCourse(ctx, req.ID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
@@ -125,7 +125,7 @@ func (server *Server) findCourse(ctx *gin.Context) {
 			ctx.JSON(http.StatusOK, course)
 			return
 		} else {
-			user, _ := controllers.FindInstructor(ctx, authPayload.Username)
+			user, _ := server.Controller.User.FindInstructor(ctx, authPayload.Username)
 			for i := 0; i < len(course.StudentsEnrolled); i++ {
 				log.Println(user.ID.Hex())
 				if course.StudentsEnrolled[i] == user.ID.Hex() {
@@ -162,12 +162,12 @@ func (server *Server) updateCourse(ctx *gin.Context) {
 		Description: req.Description,
 	}
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
+	instructor, err := server.Controller.User.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
 	}
-	course, err := controllers.FindCourse(ctx, arg.ID)
+	course, err := server.Controller.Course.FindCourse(ctx, arg.ID)
 	if instructor.UserName != course.Author {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "account doesn't belong to the authenticated user"})
 		return
@@ -178,7 +178,7 @@ func (server *Server) updateCourse(ctx *gin.Context) {
 			return
 		}
 	} else {
-		results, err := controllers.UpdateCourse(ctx, arg)
+		results, err := server.Controller.Course.UpdateCourse(ctx, arg)
 		if err != nil {
 			if we, ok := err.(mongo.WriteException); ok {
 				for _, e := range we.WriteErrors {
@@ -210,7 +210,7 @@ func (server *Server) listCourses(ctx *gin.Context) {
 		return
 	}
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
+	instructor, err := server.Controller.User.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
@@ -220,7 +220,7 @@ func (server *Server) listCourses(ctx *gin.Context) {
 		Limit: req.PageSize,
 		Skip:  (req.PageID - 1) * req.PageSize,
 	}
-	results, err := controllers.ListCourses(ctx, arg)
+	results, err := server.Controller.Course.ListCourses(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -239,6 +239,6 @@ func (server *Server) CountCoursesbyUsers(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	totalcourses := controllers.CountCoursesbyAuthor(ctx, req.Author)
+	totalcourses := server.Controller.Course.CountCoursesbyAuthor(ctx, req.Author)
 	ctx.JSON(http.StatusOK, totalcourses)
 }

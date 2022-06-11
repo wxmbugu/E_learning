@@ -22,7 +22,7 @@ func (server *Server) CreateSubSection(ctx *gin.Context) {
 		return
 	}
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	course, err := controllers.FindCoursebyName(ctx, req.CourseName)
+	course, err := server.Controller.Course.FindCoursebyName(ctx, req.CourseName)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -33,7 +33,7 @@ func (server *Server) CreateSubSection(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": controllers.ErrInvalidUser})
 		return
 	} else {
-		result, err := controllers.AddContent(ctx, req, authPayload.Username)
+		result, err := server.Controller.Course.AddContent(ctx, req, authPayload.Username)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -67,7 +67,7 @@ func (server *Server) UpdateSubSection(ctx *gin.Context) {
 		SubContent: req.Content,
 	}
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	course, err := controllers.FindCoursebyName(ctx, req.Name)
+	course, err := server.Controller.Course.FindCoursebyName(ctx, req.Name)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -80,12 +80,12 @@ func (server *Server) UpdateSubSection(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": controllers.ErrInvalidUser})
 		return
 	} else {
-		content, _ := controllers.FindContent(ctx, req.Name, req.Id)
+		content, _ := server.Controller.Course.FindContent(ctx, req.Name, req.Id)
 		if content.ID.IsZero() {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found"})
 			return
 		}
-		result, err := controllers.UpdateSectionContent(ctx, req.Name, req.Id, req.Title, &upd)
+		result, err := server.Controller.Course.UpdateSectionContent(ctx, req.Name, req.Id, req.Title, &upd)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -113,7 +113,7 @@ func (server *Server) DeleteSubSection(ctx *gin.Context) {
 		SubsectionId: req.SubsectionId,
 	}
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	course, err := controllers.FindCoursebyName(ctx, req.CourseName)
+	course, err := server.Controller.Course.FindCoursebyName(ctx, req.CourseName)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -126,12 +126,12 @@ func (server *Server) DeleteSubSection(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": controllers.ErrInvalidUser})
 		return
 	} else {
-		content, _ := controllers.FindContent(ctx, req.CourseName, req.SubsectionId)
+		content, _ := server.Controller.Course.FindContent(ctx, req.CourseName, req.SubsectionId)
 		if content.ID.IsZero() {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found"})
 			return
 		}
-		_, err := controllers.DeleteContent(ctx, del)
+		_, err := server.Controller.Course.DeleteContent(ctx, del)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -153,7 +153,7 @@ func (server *Server) GetSubSection(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	content, err := controllers.FindContent(ctx, req.Name, req.SubsectionId)
+	content, err := server.Controller.Course.FindContent(ctx, req.Name, req.SubsectionId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong couldn't fetch data"})
 		return

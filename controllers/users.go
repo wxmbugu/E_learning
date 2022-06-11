@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/E_learning/db"
 	"github.com/E_learning/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,14 +16,16 @@ const (
 	InstructorCollection = "Users"
 )
 
+type Instructor struct {
+	client *mongo.Client
+}
+
+var dbname = "e-learning"
+
 //creates the course collection
-func CollectionInstructor(ctx context.Context) *mongo.Collection {
-	db, err := db.DBInstance()
-	if err != nil {
-		log.Fatal(err)
-	}
-	collection := db.OpenCollection(context.Background(), InstructorCollection)
-	_, err = collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
+func (i *Instructor) CollectionInstructor(ctx context.Context) *mongo.Collection {
+	collection := i.client.Database(dbname).Collection((InstructorCollection))
+	_, err := collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
 			Keys:    bson.M{"Email": 1},
 			Options: options.Index().SetUnique(true),
@@ -41,15 +42,15 @@ func CollectionInstructor(ctx context.Context) *mongo.Collection {
 	return collection
 }
 
-func CreateInstructor(ctx context.Context, instructor *models.User) (*models.User, error) {
-	collection := CollectionInstructor(ctx)
+func (i Instructor) CreateInstructor(ctx context.Context, instructor *models.User) (*models.User, error) {
+	collection := i.CollectionInstructor(ctx)
 	_, err := collection.InsertOne(ctx, instructor)
 	return instructor, err
 }
 
 // find one course
-func FindInstructor(ctx context.Context, username string) (*models.User, error) {
-	collection := CollectionInstructor(ctx)
+func (i *Instructor) FindInstructor(ctx context.Context, username string) (*models.User, error) {
+	collection := i.CollectionInstructor(ctx)
 	var results models.User
 	err := collection.FindOne(ctx, bson.M{"Username": username}).Decode(&results)
 	if err != nil {
@@ -61,8 +62,8 @@ func FindInstructor(ctx context.Context, username string) (*models.User, error) 
 	return &results, err
 }
 
-func FindInstructorbyId(ctx context.Context, id string) (*models.User, error) {
-	collection := CollectionInstructor(ctx)
+func (i *Instructor) FindInstructorbyId(ctx context.Context, id string) (*models.User, error) {
+	collection := i.CollectionInstructor(ctx)
 	var results models.User
 	iuud, _ := primitive.ObjectIDFromHex(id)
 	err := collection.FindOne(ctx, bson.M{"_id": iuud}).Decode(&results)
@@ -85,8 +86,8 @@ type UpdateInstructorParams struct {
 	UpdatedAt time.Time `json:"Updated_at,omitempty" bson:"Updated_at,omitempty"`
 }
 
-func UpdateInstructor(ctx context.Context, arg UpdateInstructorParams) (*mongo.UpdateResult, error) {
-	collection := CollectionInstructor(ctx)
+func (i *Instructor) UpdateInstructor(ctx context.Context, arg UpdateInstructorParams) (*mongo.UpdateResult, error) {
+	collection := i.CollectionInstructor(ctx)
 	update := bson.D{
 		{Key: "$set", Value: bson.D{{Key: "Firstname", Value: arg.FirstName}, {Key: "Lastname", Value: arg.LastName}, {Key: "Username", Value: arg.UserName}, {Key: "Password", Value: arg.Password}, {Key: "Updated_at", Value: time.Now()}}},
 	}
@@ -104,8 +105,8 @@ func UpdateInstructor(ctx context.Context, arg UpdateInstructorParams) (*mongo.U
 	return updateResult, err
 }
 
-func DeleteInstructor(ctx context.Context, id string) error {
-	collection := CollectionInstructor(ctx)
+func (i *Instructor) DeleteInstructor(ctx context.Context, id string) error {
+	collection := i.CollectionInstructor(ctx)
 	iuud, _ := primitive.ObjectIDFromHex(id)
 	_, err := collection.DeleteOne(ctx, bson.M{"_id": iuud})
 	if err != nil {
@@ -121,8 +122,8 @@ type ListParams struct {
 }
 
 //Find multiple documents
-func ListInstructors(ctx context.Context, arg ListParams) ([]models.User, error) {
-	collection := CollectionInstructor(ctx)
+func (i *Instructor) ListInstructors(ctx context.Context, arg ListParams) ([]models.User, error) {
+	collection := i.CollectionInstructor(ctx)
 	//check the connection
 
 	//find records

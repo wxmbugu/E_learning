@@ -13,9 +13,9 @@ import (
 )
 
 //find content of a section in a course
-func FindContent(ctx context.Context, name string, subsectionid string) (*models.Content, error) {
+func (c *Course) FindContent(ctx context.Context, name string, subsectionid string) (*models.Content, error) {
 	var content models.Content
-	collection := CourseCollection(ctx)
+	collection := c.CourseCollection(ctx)
 	iuud, _ := primitive.ObjectIDFromHex(subsectionid)
 	pipeline := []bson.M{
 		{"$match": bson.M{"Name": name}},
@@ -62,8 +62,8 @@ type DelContent struct {
 }
 
 //delete content of a section in a course
-func DeleteContent(ctx context.Context, arg DelContent) (*mongo.UpdateResult, error) {
-	collection := CourseCollection(ctx)
+func (c *Course) DeleteContent(ctx context.Context, arg DelContent) (*mongo.UpdateResult, error) {
+	collection := c.CourseCollection(ctx)
 	iuud, _ := primitive.ObjectIDFromHex(arg.SubsectionId)
 	filter := bson.D{primitive.E{Key: "Name", Value: arg.CourseName}}
 
@@ -86,9 +86,9 @@ type CourseSubSection struct {
 }
 
 //add content of a section in a course
-func AddContent(ctx context.Context, arg CourseSubSection, author string) (*mongo.UpdateResult, error) {
-	collection := CourseCollection(ctx)
-	course, err := FindCoursebyName(ctx, arg.CourseName)
+func (c *Course) AddContent(ctx context.Context, arg CourseSubSection, author string) (*mongo.UpdateResult, error) {
+	collection := c.CourseCollection(ctx)
+	course, err := c.FindCoursebyName(ctx, arg.CourseName)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, ErrNoSuchDocument
@@ -114,8 +114,8 @@ func AddContent(ctx context.Context, arg CourseSubSection, author string) (*mong
 }
 
 //update content of a section in a course
-func UpdateSectionContent(ctx context.Context, name string, subsectionid string, sectiontitle string, arg *models.Content) (*mongo.UpdateResult, error) {
-	collection := CourseCollection(ctx)
+func (c *Course) UpdateSectionContent(ctx context.Context, name string, subsectionid string, sectiontitle string, arg *models.Content) (*mongo.UpdateResult, error) {
+	collection := c.CourseCollection(ctx)
 	filter := bson.D{primitive.E{Key: "Name", Value: name}}
 	iuud, _ := primitive.ObjectIDFromHex(subsectionid)
 	arrayFilters := options.ArrayFilters{Filters: bson.A{bson.M{"x.Title": sectiontitle}, bson.M{"y.subsectionid": iuud}}}

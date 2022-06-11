@@ -29,12 +29,12 @@ func (server *Server) AddSection(ctx *gin.Context) {
 	}
 	fmt.Println(req)
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
+	instructor, err := server.Controller.User.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
 	}
-	result, err := controllers.AddSection(ctx, req, instructor.UserName)
+	result, err := server.Controller.Course.AddSection(ctx, req, instructor.UserName)
 	if err != nil {
 		if err == controllers.ErrNoSuchDocument {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
@@ -77,19 +77,19 @@ func (server *Server) updateSection(ctx *gin.Context) {
 		Title: req.Title,
 	}
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
+	instructor, err := server.Controller.User.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
 	}
-	_, err = controllers.FindSection(ctx, req.Name, instructor.UserName, req.Id)
+	_, err = server.Controller.Course.FindSection(ctx, req.Name, instructor.UserName, req.Id)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
 			return
 		}
 	} else {
-		result, err := controllers.UpdateSection(ctx, req.Id, req.Name, &upd)
+		result, err := server.Controller.Course.UpdateSection(ctx, req.Id, req.Name, &upd)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -121,12 +121,12 @@ func (server *Server) DeleteSection(ctx *gin.Context) {
 		Id:   req.Id,
 	}
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	instructor, err := controllers.FindInstructor(ctx, authPayload.Username)
+	instructor, err := server.Controller.User.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 		return
 	}
-	_, err = controllers.FindSection(ctx, req.Name, instructor.UserName, req.Id)
+	_, err = server.Controller.Course.FindSection(ctx, req.Name, instructor.UserName, req.Id)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
@@ -137,7 +137,7 @@ func (server *Server) DeleteSection(ctx *gin.Context) {
 			return
 		}
 	} else {
-		result, err := controllers.DeleteSection(ctx, del)
+		result, err := server.Controller.Course.DeleteSection(ctx, del)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

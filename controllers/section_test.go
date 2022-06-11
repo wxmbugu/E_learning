@@ -17,13 +17,13 @@ func TestFindSection(t *testing.T) {
 		Section: section,
 	}
 	args.Section = section
-	course, _ := CreateCourse(context.Background(), &args)
+	course, _ := controllers.Course.CreateCourse(context.Background(), &args)
 	require.NotEmpty(t, course)
 	for _, section := range argsec.Section {
-		result, err := FindSection(context.Background(), argsec.Name, course.Author, section.ID.Hex())
+		result, err := controllers.Course.FindSection(context.Background(), argsec.Name, course.Author, section.ID.Hex())
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		result1, err := FindSectionbyTitle(context.Background(), argsec.Name, course.Author, result.Title)
+		result1, err := controllers.Course.FindSectionbyTitle(context.Background(), argsec.Name, course.Author, result.Title)
 		require.NoError(t, err)
 		require.NotNil(t, result1)
 		require.Equal(t, result.Title, result1.Title)
@@ -40,7 +40,7 @@ func TestDeleteSection(t *testing.T) {
 		Section: section,
 	}
 	args.Section = section
-	course, _ := CreateCourse(context.Background(), &args)
+	course, _ := controllers.Course.CreateCourse(context.Background(), &args)
 	require.NotEmpty(t, course)
 	var argdel DelSection
 	for _, section := range argsec.Section {
@@ -48,10 +48,10 @@ func TestDeleteSection(t *testing.T) {
 			Name: course.Name,
 			Id:   section.ID.Hex(),
 		}
-		res, err := DeleteSection(context.Background(), argdel)
+		res, err := controllers.Course.DeleteSection(context.Background(), argdel)
 		require.NoError(t, err)
 		require.NotEmpty(t, res)
-		sec, err := FindSection(context.Background(), argdel.Name, course.Author, "")
+		sec, err := controllers.Course.FindSection(context.Background(), argdel.Name, course.Author, "")
 		require.NoError(t, err)
 		require.Empty(t, sec)
 
@@ -63,13 +63,13 @@ func TestAddSection(t *testing.T) {
 	args := createcourse()
 	section := NewSection()
 	args.Section = section
-	course, _ := CreateCourse(context.Background(), &args)
+	course, _ := controllers.Course.CreateCourse(context.Background(), &args)
 	require.NotEmpty(t, course)
 	argsec := CourseSec{
 		Name:    args.Name,
 		Section: section,
 	}
-	result, err := AddSection(context.Background(), argsec, course.Author)
+	result, err := controllers.Course.AddSection(context.Background(), argsec, course.Author)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 
@@ -79,7 +79,7 @@ func TestUpdateSection(t *testing.T) {
 	args := createcourse()
 	section := NewSection()
 	args.Section = section
-	course, _ := CreateCourse(context.Background(), &args)
+	course, _ := controllers.Course.CreateCourse(context.Background(), &args)
 	require.NotEmpty(t, course)
 	argsec := CourseSec{
 		Name:    args.Name,
@@ -89,7 +89,7 @@ func TestUpdateSection(t *testing.T) {
 		args := models.Section{
 			Title: util.RandomString(4),
 		}
-		result, err := UpdateSection(context.Background(), course.Name, section.ID.Hex(), &args)
+		result, err := controllers.Course.UpdateSection(context.Background(), course.Name, section.ID.Hex(), &args)
 		require.NoError(t, err)
 		require.NotNil(t, result)
 	}

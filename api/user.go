@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/E_learning/controllers"
 	"github.com/E_learning/models"
 	"github.com/E_learning/util"
 	"github.com/gin-gonic/gin"
@@ -52,7 +51,7 @@ func (server *Server) CreateInstructor(ctx *gin.Context) {
 		Password:  hashpassword,
 		CreatedAt: time.Now(),
 	}
-	instructor, err := controllers.CreateInstructor(ctx, &args)
+	instructor, err := server.Controller.User.CreateInstructor(ctx, &args)
 	if err != nil {
 		if we, ok := err.(mongo.WriteException); ok {
 			for _, e := range we.WriteErrors {
@@ -85,7 +84,7 @@ func (server *Server) InstructorLogin(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Fill in username and password"})
 		return
 	}
-	user, err := controllers.FindInstructor(ctx, req.UserName)
+	user, err := server.Controller.User.FindInstructor(ctx, req.UserName)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "No Such Account!"})
@@ -101,7 +100,7 @@ func (server *Server) InstructorLogin(ctx *gin.Context) {
 	}
 	accessToken, err := server.tokenMaker.CreateToken(
 		user.UserName,
-		server.config.Tokenduration,
+		server.Config.Tokenduration,
 	)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

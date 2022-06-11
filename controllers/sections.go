@@ -24,9 +24,9 @@ var (
 )
 
 //function to add section to a course
-func AddSection(ctx context.Context, arg CourseSec, author string) (*mongo.UpdateResult, error) {
-	collection := CourseCollection(ctx)
-	course, err := FindCoursebyName(ctx, arg.Name)
+func (c *Course) AddSection(ctx context.Context, arg CourseSec, author string) (*mongo.UpdateResult, error) {
+	collection := c.CourseCollection(ctx)
+	course, err := c.FindCoursebyName(ctx, arg.Name)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, ErrNoSuchDocument
@@ -47,8 +47,8 @@ func AddSection(ctx context.Context, arg CourseSec, author string) (*mongo.Updat
 }
 
 //update course section
-func UpdateSection(ctx context.Context, name string, id string, arg *models.Section) (*mongo.UpdateResult, error) {
-	collection := CourseCollection(ctx)
+func (c *Course) UpdateSection(ctx context.Context, name string, id string, arg *models.Section) (*mongo.UpdateResult, error) {
+	collection := c.CourseCollection(ctx)
 	filter := bson.D{primitive.E{Key: "Name", Value: name}}
 	iuud, _ := primitive.ObjectIDFromHex(id)
 	arrayFilters := options.ArrayFilters{Filters: bson.A{bson.M{"x._id": iuud}}}
@@ -75,8 +75,8 @@ type DelSection struct {
 }
 
 //delete course section
-func DeleteSection(ctx context.Context, arg DelSection) (*mongo.UpdateResult, error) {
-	collection := CourseCollection(ctx)
+func (c *Course) DeleteSection(ctx context.Context, arg DelSection) (*mongo.UpdateResult, error) {
+	collection := c.CourseCollection(ctx)
 	filter := bson.D{primitive.E{Key: "Name", Value: arg.Name}}
 	iuud, _ := primitive.ObjectIDFromHex(arg.Id)
 	update := bson.M{
@@ -92,11 +92,11 @@ func DeleteSection(ctx context.Context, arg DelSection) (*mongo.UpdateResult, er
 }
 
 //find course section by id
-func FindSection(ctx context.Context, name string, author string, id string) (*models.Section, error) {
+func (c *Course) FindSection(ctx context.Context, name string, author string, id string) (*models.Section, error) {
 	var section models.Section
-	collection := CourseCollection(ctx)
+	collection := c.CourseCollection(ctx)
 	iuud, _ := primitive.ObjectIDFromHex(id)
-	course, err := FindCoursebyName(ctx, name)
+	course, err := c.FindCoursebyName(ctx, name)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Print("No such document")
@@ -127,10 +127,10 @@ func FindSection(ctx context.Context, name string, author string, id string) (*m
 }
 
 //find course section by title
-func FindSectionbyTitle(ctx context.Context, name string, author string, sectiontitle string) (*models.Section, error) {
+func (c *Course) FindSectionbyTitle(ctx context.Context, name string, author string, sectiontitle string) (*models.Section, error) {
 	var section models.Section
-	collection := CourseCollection(ctx)
-	course, err := FindCoursebyName(ctx, name)
+	collection := c.CourseCollection(ctx)
+	course, err := c.FindCoursebyName(ctx, name)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Print("No such document")

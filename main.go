@@ -18,6 +18,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 
 	"github.com/E_learning/api"
@@ -30,10 +31,13 @@ func main() {
 		log.Print(err)
 	}
 	server, err := api.NewServer(env)
+	address := server.Config.Server_address
+	flag.StringVar(&address, "port", env.Server_address, "port address for server to run on.")
+	flag.Parse()
 	if err != nil {
 		log.Println("Couldn't Start Server!")
 	}
-	err = server.Start(env.Server_address)
+	err = server.Start(address)
 	if err != nil {
 		log.Fatal(err)
 	}

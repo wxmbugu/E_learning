@@ -1,22 +1,29 @@
 package api
 
 import (
+	"context"
 	"fmt"
+	"log"
+	"time"
 
 	//	sess "github.com/E_learning/sessions"
 
 	"github.com/E_learning/aws"
+	"github.com/E_learning/controllers"
 	"github.com/E_learning/token"
 	"github.com/E_learning/util"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Server struct {
-	config      util.Config
+	Config      util.Config
 	tokenMaker  token.Maker
 	redisClient *redis.Client
 	router      *gin.Engine
+	Controller  controllers.Controllers
 }
 
 func NewServer(config util.Config) (*Server, error) {
@@ -31,13 +38,30 @@ func NewServer(config util.Config) (*Server, error) {
 	status := redisClient.Ping()
 	fmt.Println(status)
 	server := Server{
-		config:      config,
+		Config:      config,
 		tokenMaker:  tokenMaker,
 		redisClient: redisClient,
+		Controller:  Opendb(),
 	}
 	server.Routes()
 
 	return &server, nil
+}
+
+func Opendb() controllers.Controllers {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	config, err := util.LoadConfig("../.")
+	if err != nil {
+		log.Print(err)
+	}
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.DbUri))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	c := controllers.New(client)
+	return c
 }
 
 func (server *Server) Start(address string) error {
