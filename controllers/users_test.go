@@ -82,7 +82,7 @@ func TestDeleteInstructor(t *testing.T) {
 	require.NotEmpty(t, instructor1)
 	err = controllers.User.DeleteInstructor(context.Background(), args.ID.Hex())
 	require.NoError(t, err)
-	instructor2, err := controllers.User.FindInstructor(context.Background(), args.ID.Hex())
+	instructor2, err := controllers.User.FindInstructor(context.Background(), "")
 	require.EqualError(t, err, mongo.ErrNoDocuments.Error())
 	require.Empty(t, instructor2)
 }

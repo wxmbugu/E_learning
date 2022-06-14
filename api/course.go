@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -123,7 +124,6 @@ func (server *Server) findCourse(ctx *gin.Context) {
 		} else {
 			user, _ := server.Controller.User.FindInstructor(ctx, authPayload.Username)
 			for i := 0; i < len(course.StudentsEnrolled); i++ {
-				log.Println(user.ID.Hex())
 				if course.StudentsEnrolled[i] == user.ID.Hex() {
 					log.Println(course.StudentsEnrolled[i])
 					ctx.JSON(http.StatusOK, course)
@@ -251,4 +251,24 @@ func (server *Server) ListAllCourses(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, courses)
 
+}
+
+type Enrollreq struct {
+	Coursetitle string `json:"title"`
+	Username    string `json:"username"`
+}
+
+func (server *Server) Enroll(ctx *gin.Context) {
+	var req Enrollreq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	result, err := server.Controller.Course.Enroll(ctx, req.Coursetitle, req.Username)
+	fmt.Println("bozo", err)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, result)
 }

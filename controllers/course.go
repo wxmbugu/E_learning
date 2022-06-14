@@ -179,7 +179,7 @@ func (c *Course) ListAllCourses(ctx context.Context) ([]models.Course, error) {
 
 }
 
-func (c *Course) Enroll(ctx context.Context, coursetitle string, userid string) (*mongo.UpdateResult, error) {
+func (c *Course) Enroll(ctx context.Context, coursetitle string, username string) (*mongo.UpdateResult, error) {
 	var instructor Instructor
 	collection := c.CourseCollection(ctx)
 	course, err := c.FindCoursebyName(ctx, coursetitle)
@@ -190,13 +190,16 @@ func (c *Course) Enroll(ctx context.Context, coursetitle string, userid string) 
 		}
 		log.Fatal(err)
 	}
-	user, err := instructor.FindInstructorbyId(ctx, userid)
+	fmt.Println(username)
+	user, err := instructor.FindInstructor(ctx, username)
+	fmt.Println(user.Email)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, err
 		}
 		log.Fatal(err)
 	}
+	fmt.Println(user)
 	match := bson.M{"Name": coursetitle}
 	change := bson.M{"$push": bson.M{"StudentsEnrolled": user.ID.Hex()}}
 	result, err := collection.UpdateOne(ctx, match, change)

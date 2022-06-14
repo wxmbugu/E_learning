@@ -127,7 +127,7 @@ func TestEnrollCourse(t *testing.T) {
 	student, err := instructor.CreateInstructor(context.Background(), &user)
 	require.NoError(t, err)
 	require.NotEmpty(t, student)
-	result, err := controllers.Course.Enroll(context.Background(), coursec.Name, student.ID.Hex())
+	result, err := controllers.Course.Enroll(context.Background(), coursec.Name, student.UserName)
 	require.NoError(t, err)
 	require.NotEmpty(t, result)
 	_, err = controllers.Course.Enroll(context.Background(), "hah", student.ID.String())

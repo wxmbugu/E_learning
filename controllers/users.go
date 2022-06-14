@@ -59,6 +59,7 @@ func (i *Instructor) FindInstructor(ctx context.Context, username string) (*mode
 			log.Print("No such document")
 		}
 	}
+	log.Println("escapess", err, results)
 	return &results, err
 }
 

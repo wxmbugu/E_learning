@@ -99,6 +99,7 @@ func (server *Server) Routes() {
 	authroute.GET("/course/:id", server.findCourse)
 	authroute.POST("/course/update/:id", server.updateCourse)
 	authroute.GET("/course", server.listCourses)
+	authroute.POST("/enroll", server.Enroll)
 	authroute.POST("/course/:name", server.AddSection)
 	authroute.POST("/course/:name/updatesection/:id", server.updateSection)
 	authroute.DELETE("/course/:name/deletesection/:id", server.DeleteSection)
