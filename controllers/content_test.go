@@ -113,7 +113,10 @@ func TestUpdateCourseSubSection(t *testing.T) {
 			SubContent: util.RandomString(100),
 		}
 		for _, cont := range section.Content {
-			result, err := controllers.Course.UpdateSectionContent(context.Background(), course.Name, cont.ID.Hex(), section.Title, &args)
+			result, err := controllers.Course.UpdateSectionContent(context.Background(), course.Name, cont.ID.Hex(), section.Title, &args.SubContent)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			result, err = controllers.Course.UpdateSectionTitle(context.Background(), course.Name, cont.ID.Hex(), section.Title, &args.SubTitle)
 			require.NoError(t, err)
 			require.NotNil(t, result)
 		}

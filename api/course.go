@@ -29,15 +29,10 @@ func (server *Server) createCourse(ctx *gin.Context) {
 		return
 	}
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	instructor, err := server.Controller.User.FindInstructor(ctx, authPayload.Username)
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
-		return
-	}
 	args := models.Course{
 		ID:          primitive.NewObjectID(),
 		Name:        req.Name,
-		Author:      instructor.UserName,
+		Author:      authPayload.Username,
 		Description: req.Description,
 		CreatedAt:   time.Now(),
 	}
@@ -88,6 +83,7 @@ func (server *Server) deleteCourse(ctx *gin.Context) {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong couldn't delete"})
 			return
 		}
+
 		log.Println("Remove data from Redis")
 		server.redisClient.Del("Courses")
 		ctx.JSON(http.StatusOK, "Delete Course Successfull!")
@@ -241,4 +237,18 @@ func (server *Server) CountCoursesbyUsers(ctx *gin.Context) {
 	}
 	totalcourses := server.Controller.Course.CountCoursesbyAuthor(ctx, req.Author)
 	ctx.JSON(http.StatusOK, totalcourses)
+}
+
+func (server *Server) ListAllCourses(ctx *gin.Context) {
+	courses, err := server.Controller.Course.ListAllCourses(ctx)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found!"})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong!"})
+		return
+	}
+	ctx.JSON(http.StatusOK, courses)
+
 }

@@ -114,7 +114,7 @@ func (c *Course) AddContent(ctx context.Context, arg CourseSubSection, author st
 }
 
 //update content of a section in a course
-func (c *Course) UpdateSectionContent(ctx context.Context, name string, subsectionid string, sectiontitle string, arg *models.Content) (*mongo.UpdateResult, error) {
+func (c *Course) UpdateSectionContent(ctx context.Context, name string, subsectionid string, sectiontitle string, arg *string) (*mongo.UpdateResult, error) {
 	collection := c.CourseCollection(ctx)
 	filter := bson.D{primitive.E{Key: "Name", Value: name}}
 	iuud, _ := primitive.ObjectIDFromHex(subsectionid)
@@ -126,8 +126,32 @@ func (c *Course) UpdateSectionContent(ctx context.Context, name string, subsecti
 	}
 	update := bson.M{
 		"$set": bson.M{
-			"Section.$[x].Content.$[y].Subsection_Title": arg.SubTitle,
-			"Section.$[x].Content.$[y].SubContent":       arg.SubContent,
+			//"Section.$[x].Content.$[y].Subsection_Title": arg.SubTitle,
+			"Section.$[x].Content.$[y].SubContent": arg,
+		},
+	}
+	result, err := collection.UpdateOne(ctx, filter, update, &opts)
+	if err != nil {
+		fmt.Printf("error updating db: %+v\n", err)
+	}
+	return result, err
+}
+
+//update content of a section in a course
+func (c *Course) UpdateSectionTitle(ctx context.Context, name string, subsectionid string, sectiontitle string, arg *string) (*mongo.UpdateResult, error) {
+	collection := c.CourseCollection(ctx)
+	filter := bson.D{primitive.E{Key: "Name", Value: name}}
+	iuud, _ := primitive.ObjectIDFromHex(subsectionid)
+	arrayFilters := options.ArrayFilters{Filters: bson.A{bson.M{"x.Title": sectiontitle}, bson.M{"y.subsectionid": iuud}}}
+	upsert := true
+	opts := options.UpdateOptions{
+		ArrayFilters: &arrayFilters,
+		Upsert:       &upsert,
+	}
+	update := bson.M{
+		"$set": bson.M{
+			"Section.$[x].Content.$[y].Subsection_Title": arg,
+			//"Section.$[x].Content.$[y].SubContent":       arg.SubContent,
 		},
 	}
 	result, err := collection.UpdateOne(ctx, filter, update, &opts)

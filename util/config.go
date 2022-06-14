@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	DbUri             string        `mapstructure:"DB_URI"`
-	DbName            string        `mapstructure:"DB_Name"`
+	DbName            string        `mapstructure:"DB_NAME"`
 	Server_address    string        `mapstructure:"SERVER_ADDRESS"`
 	TokenSymmetrickey string        `mapstructure:"TOKEN_SYMETRIC_KEY"`
 	Tokenduration     time.Duration `mapstructure:"TOKEN_DURATION"`
