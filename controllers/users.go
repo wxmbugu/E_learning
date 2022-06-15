@@ -24,7 +24,8 @@ var dbname = "e-learning"
 
 //creates the course collection
 func (i *Instructor) CollectionInstructor(ctx context.Context) *mongo.Collection {
-	collection := i.client.Database(dbname).Collection((InstructorCollection))
+	collection := i.client.Database(dbname).Collection(InstructorCollection)
+
 	_, err := collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
 			Keys:    bson.M{"Email": 1},
@@ -42,7 +43,7 @@ func (i *Instructor) CollectionInstructor(ctx context.Context) *mongo.Collection
 	return collection
 }
 
-func (i Instructor) CreateInstructor(ctx context.Context, instructor *models.User) (*models.User, error) {
+func (i *Instructor) CreateInstructor(ctx context.Context, instructor *models.User) (*models.User, error) {
 	collection := i.CollectionInstructor(ctx)
 	_, err := collection.InsertOne(ctx, instructor)
 	return instructor, err
@@ -66,8 +67,11 @@ func (i *Instructor) FindInstructor(ctx context.Context, username string) (*mode
 func (i *Instructor) FindInstructorbyId(ctx context.Context, id string) (*models.User, error) {
 	collection := i.CollectionInstructor(ctx)
 	var results models.User
-	iuud, _ := primitive.ObjectIDFromHex(id)
-	err := collection.FindOne(ctx, bson.M{"_id": iuud}).Decode(&results)
+	iuud, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Print(err)
+	}
+	err = collection.FindOne(ctx, bson.M{"_id": iuud}).Decode(&results)
 	if err != nil {
 		// ErrNoDocuments means that the filter did not match any documents in the collection
 		if err == mongo.ErrNoDocuments {

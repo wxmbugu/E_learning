@@ -59,7 +59,11 @@ func Opendb() controllers.Controllers {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	err = client.Ping(context.Background(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	println("Connected Successfully")
 	c := controllers.New(client)
 	return c
 }
@@ -90,6 +94,7 @@ func (server *Server) Routes() {
 	})
 	router.POST("/user/signup", server.CreateInstructor)
 	router.POST("/user/login", server.InstructorLogin)
+	router.POST("/course/:name/:sectionid", server.CreateSubSection)
 	router.GET("/courses", server.ListAllCourses)
 	authroute := router.Group("/").Use(authMiddleware(server.tokenMaker))
 	authroute.GET("/total/:author", server.CountCoursesbyUsers)
@@ -103,7 +108,6 @@ func (server *Server) Routes() {
 	authroute.POST("/course/:name", server.AddSection)
 	authroute.POST("/course/:name/updatesection/:id", server.updateSection)
 	authroute.DELETE("/course/:name/deletesection/:id", server.DeleteSection)
-	authroute.POST("/course/:name/:sectionid", server.CreateSubSection)
 	authroute.GET("/courses/:name/section/:subsectionid", server.GetSubSection)
 	authroute.POST("/course/:name/update/:sectiontitle/:subsectionid", server.UpdateSubSection)
 	authroute.DELETE("/course/:name/delete/:sectiontitle/:subsectionid", server.DeleteSubSection)
