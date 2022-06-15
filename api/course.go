@@ -262,12 +262,28 @@ func (server *Server) Enroll(ctx *gin.Context) {
 	var req Enrollreq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	result, err := server.Controller.Course.Enroll(ctx, req.Coursetitle, req.Username)
-	fmt.Println("bozo", err)
+	fmt.Println("fuck", req)
+	user, err := server.Controller.User.FindInstructor(ctx, req.Username)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	course, err := server.Controller.Course.FindCoursebyName(ctx, req.Coursetitle)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	if course.Author == user.UserName {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Your the course author can't enroll yourself"})
+	}
+	result, err := server.Controller.Course.Enroll(ctx, req.Coursetitle, user.ID.Hex())
+	fmt.Println("bozo")
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println("washappening!", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	ctx.JSON(http.StatusOK, result)

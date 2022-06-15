@@ -120,7 +120,6 @@ type ListCourseParams struct {
 func (c *Course) ListCourses(ctx context.Context, arg ListCourseParams) ([]models.Course, error) {
 	collection := c.CourseCollection(ctx)
 	//check the connection
-
 	//find records
 	//pass these options to the Find method
 	findOptions := options.Find()
@@ -179,29 +178,18 @@ func (c *Course) ListAllCourses(ctx context.Context) ([]models.Course, error) {
 
 }
 
-func (c *Course) Enroll(ctx context.Context, coursetitle string, username string) (*mongo.UpdateResult, error) {
-	var instructor Instructor
+func (c *Course) Enroll(ctx context.Context, coursetitle string, id string) (*mongo.UpdateResult, error) {
 	collection := c.CourseCollection(ctx)
 	course, err := c.FindCoursebyName(ctx, coursetitle)
-	fmt.Println(course.Name)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, err
 		}
-		log.Fatal(err)
+		fmt.Println(err)
 	}
-	fmt.Println(username)
-	user, err := instructor.FindInstructor(ctx, username)
-	fmt.Println(user.Email)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, err
-		}
-		log.Fatal(err)
-	}
-	fmt.Println(user)
+
 	match := bson.M{"Name": coursetitle}
-	change := bson.M{"$push": bson.M{"StudentsEnrolled": user.ID.Hex()}}
+	change := bson.M{"$push": bson.M{"StudentsEnrolled": id}}
 	result, err := collection.UpdateOne(ctx, match, change)
 	if err != nil {
 		log.Fatal(err)
