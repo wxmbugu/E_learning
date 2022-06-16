@@ -277,6 +277,7 @@ func (server *Server) Enroll(ctx *gin.Context) {
 	}
 	if course.Author == user.UserName {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Your the course author can't enroll yourself"})
+		return
 	}
 	result, err := server.Controller.Course.Enroll(ctx, req.Coursetitle, user.ID.Hex())
 	fmt.Println("bozo")

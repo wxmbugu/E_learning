@@ -1,5 +1,9 @@
-# e-learning
+## NB: Needs some clean up (use at your own risk) using this codebase for learning purposes 
+---
+# E-learning
 In progress
+
+
 
 ### Few Notes Swagger
   - #### Setup swagger

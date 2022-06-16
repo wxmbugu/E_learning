@@ -134,18 +134,29 @@ func (server *Server) DeleteSubSection(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found"})
 			return
 		}
-		_, err := server.Controller.Course.DeleteContent(ctx, del)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		sess := ctx.MustGet("sess").(*session.Session)
-		fmt.Println(content.SubContent)
-		x := strings.TrimPrefix(content.SubContent, "https://elearning-course-videos.s3-eu-central-1.amazonaws.com/")
-		fmt.Println("testing", x)
-		err = Deletevideo(sess, &server.Config.Bucketname, &x)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+		if content.SubContent == "" {
+			_, err := server.Controller.Course.DeleteContent(ctx, del)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+		} else {
+			_, err := server.Controller.Course.DeleteContent(ctx, del)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			sess := ctx.MustGet("sess").(*session.Session)
+			fmt.Println(content.SubContent)
+			x := strings.TrimPrefix(content.SubContent, "https://elearning-course-videos.s3-eu-central-1.amazonaws.com/")
+			fmt.Println("testing", x)
+			err = Deletevideo(sess, &server.Config.Bucketname, &x)
+			fmt.Println("hjk", err)
+			if err != nil {
+				ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 		}
 
 		log.Println("Remove data from Redis")
