@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -15,6 +16,10 @@ import (
 
 const (
 	collectionCourse = "Course"
+)
+
+var (
+	ErrReEnrollment = errors.New("You can't renroll")
 )
 
 type Course struct {
@@ -190,6 +195,12 @@ func (c *Course) Enroll(ctx context.Context, coursetitle string, id string) (*mo
 
 	match := bson.M{"Name": coursetitle}
 	change := bson.M{"$push": bson.M{"StudentsEnrolled": id}}
+
+	for i := 0; i < len(course.StudentsEnrolled); i++ {
+		if id == course.StudentsEnrolled[i] {
+			return nil, ErrReEnrollment
+		}
+	}
 	result, err := collection.UpdateOne(ctx, match, change)
 	if err != nil {
 		log.Fatal(err)
@@ -197,6 +208,25 @@ func (c *Course) Enroll(ctx context.Context, coursetitle string, id string) (*mo
 		fmt.Println("You enrolled to:", course.Name)
 	}
 	return result, err
+}
+
+func (c *Course) EnrolledCourses(ctx context.Context, id string) ([]models.Course, error) {
+	collection := c.CourseCollection(ctx)
+	filter := bson.M{"StudentsEnrolled": id}
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var results []models.Course
+
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
+		//decode into a struct, user cursor.Decode() but to get all results use cursor.All()
+		if err = cursor.All(ctx, &results); err != nil {
+			log.Fatal(err)
+		}
+	}
+	return results, nil
 }
 
 func (c *Course) CountCoursesbyAuthor(ctx context.Context, author string) int64 {

@@ -97,6 +97,7 @@ func (server *Server) Routes() {
 
 	router.GET("/courses", server.ListAllCourses)
 	authroute := router.Group("/").Use(authMiddleware(server.tokenMaker))
+	authroute.GET("/course/enrolled", server.GetCoursesbyEnrollment)
 	authroute.GET("/total/:author", server.CountCoursesbyUsers)
 	authroute.POST("/upload/:name/:sectiontitle/:subsectionid", server.Uploadvideo)
 	authroute.POST("/course", server.createCourse)
