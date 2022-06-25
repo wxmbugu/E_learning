@@ -194,9 +194,8 @@ func (server *Server) updateCourse(ctx *gin.Context) {
 }
 
 type listCoursesRequest struct {
-	Owner    string `json:"Instructor"`
-	PageID   int64  `form:"page_id" binding:"required,min=0"`
-	PageSize int64  `form:"page_size" binding:"required,min=5,max=10"`
+	PageID   int64 `form:"page_id" binding:"required,min=0"`
+	PageSize int64 `form:"page_size" binding:"required,min=5,max=10"`
 }
 
 func (server *Server) listCourses(ctx *gin.Context) {
@@ -288,4 +287,19 @@ func (server *Server) Enroll(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, result)
+}
+
+func (server *Server) GetCoursesbyEnrollment(ctx *gin.Context) {
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	user, err := server.Controller.User.FindInstructor(ctx, authPayload.Username)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	courses, err := server.Controller.Course.EnrolledCourses(ctx, user.ID.Hex())
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Enrolled in any courses"})
+		return
+	}
+	ctx.JSON(http.StatusOK, courses)
 }

@@ -23,6 +23,7 @@ func (c *Course) FindContent(ctx context.Context, name string, subsectionid stri
 		{"$unwind": "$Section.Content"},
 		{"$match": bson.M{"Section.Content.subsectionid": iuud}},
 		{"$project": bson.M{
+			"Thumbnail":        "$Section.Content.Thumbnail",
 			"Subsection_Title": "$Section.Content.Subsection_Title",
 			"SubContent":       "$Section.Content.SubContent",
 			"_id":              "$Section.Content.subsectionid",
@@ -50,6 +51,10 @@ func (c *Course) FindContent(ctx context.Context, name string, subsectionid stri
 		content.SubTitle, ok = result["Subsection_Title"].(string)
 		if !ok {
 			content.SubTitle = ""
+		}
+		content.SubTitle, ok = result["Thumbnail"].(string)
+		if !ok {
+			content.Thumbnail = ""
 		}
 		content.ID = result["_id"].(primitive.ObjectID)
 	}
