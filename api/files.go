@@ -135,7 +135,7 @@ func (server Server) Uploadvideo(ctx *gin.Context) {
 		}
 		file1, ok := file.(*os.File)
 		if !ok {
-			log.Println("Something bad", ok, file1)
+			log.Println(ok, file1)
 		}
 		filereader, _ := file1.Stat()
 		head := make([]byte, 261)
