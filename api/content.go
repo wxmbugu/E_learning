@@ -152,6 +152,14 @@ func (server *Server) DeleteSubSection(ctx *gin.Context) {
 			x := strings.TrimPrefix(content.SubContent, "https://elearning-course-videos.s3-eu-central-1.amazonaws.com/")
 			fmt.Println("testing", x)
 			err = Deletevideo(sess, &server.Config.Bucketname, &x)
+			if err != nil {
+				log.Println(err)
+			}
+			y := strings.TrimPrefix(content.Thumbnail, "https://elearning-course-videos.s3-eu-central-1.amazonaws.com/")
+			err = Deletevideo(sess, &server.Config.Bucketname, &y)
+			if err != nil {
+				log.Println(err)
+			}
 			fmt.Println("hjk", err)
 			if err != nil {
 				ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

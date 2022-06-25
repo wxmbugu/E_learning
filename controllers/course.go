@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	ErrReEnrollment = errors.New("You can't renroll")
+	ErrReEnrollment = errors.New("you can't renroll")
 )
 
 type Course struct {

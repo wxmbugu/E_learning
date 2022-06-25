@@ -27,4 +27,5 @@ type Content struct {
 	ID         primitive.ObjectID `bson:"subsectionid" `
 	SubTitle   string             `json:"Subsection_Title" binding:"required" bson:"Subsection_Title,omitempty"`
 	SubContent string             `json:"SubContent" bson:"SubContent,omitempty"`
+	Thumbnail  string             `json:"Thumbnail" bson:"Thumbnail,omitempty"`
 }
