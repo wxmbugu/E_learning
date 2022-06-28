@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  worker:
+    image: worker
+    environment:
+     - MONGO_URI="mongodb://host.docker.internal:27017/"
+     - MONGO_DATABASE=e-learning 
+     - RABBITMQ_URI=amqp://user:password@rabbitmq:5672/
+     - RABBITMQ_QUEUE=upload
+    networks:
+     - app_network
+    external_links:
+     - e-learning
+     - rabbitmq
+    volumes:
+      - worker:/go/src/github.com/worker:rw
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+ app_network:
+  external: true
+volumes:
+  worker:
