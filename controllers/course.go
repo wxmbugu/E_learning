@@ -159,6 +159,7 @@ func (c *Course) ListCourses(ctx context.Context, arg ListCourseParams) ([]model
 	}
 
 	//Close the cursor once finished
+
 	cur.Close(ctx)
 	return results, err
 }
@@ -183,19 +184,17 @@ func (c *Course) ListAllCourses(ctx context.Context) ([]models.Course, error) {
 
 }
 
-func (c *Course) Enroll(ctx context.Context, coursetitle string, id string) (*mongo.UpdateResult, error) {
+func (c *Course) Enroll(ctx context.Context, coursetitle, id string) (*mongo.UpdateResult, error) {
 	collection := c.CourseCollection(ctx)
 	course, err := c.FindCoursebyName(ctx, coursetitle)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, err
 		}
-		fmt.Println(err)
+		log.Fatal(err)
 	}
-
 	match := bson.M{"Name": coursetitle}
 	change := bson.M{"$push": bson.M{"StudentsEnrolled": id}}
-
 	for i := 0; i < len(course.StudentsEnrolled); i++ {
 		if id == course.StudentsEnrolled[i] {
 			return nil, ErrReEnrollment
@@ -204,9 +203,8 @@ func (c *Course) Enroll(ctx context.Context, coursetitle string, id string) (*mo
 	result, err := collection.UpdateOne(ctx, match, change)
 	if err != nil {
 		log.Fatal(err)
-	} else {
-		fmt.Println("You enrolled to:", course.Name)
 	}
+	fmt.Println("You enrolled to:", course.Name)
 	return result, err
 }
 
@@ -235,3 +233,36 @@ func (c *Course) CountCoursesbyAuthor(ctx context.Context, author string) int64 
 	fmt.Println("No of courses ------->", count)
 	return count
 }
+
+func (c *Course) Section(ctx context.Context, coursetitle, id string) (*mongo.UpdateResult, error) {
+	fmt.Println("disturb", coursetitle, id)
+	collection := c.CourseCollection(ctx)
+	course, err := c.FindCoursebyName(ctx, coursetitle)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, err
+		}
+		fmt.Println(err)
+	}
+
+	match := bson.M{"Name": coursetitle}
+	change := bson.M{"$push": bson.M{"Section": id}}
+
+	result, err := collection.UpdateOne(ctx, match, change)
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		fmt.Println("New section added to:", course.Name)
+	}
+	return result, err
+}
+
+// func (c *Course) DeleteSection(ctx context.Context, id string) {
+// course, err := c.FindCourse(ctx, id)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	for _, section := range course.Section {
+//
+// 	}
+// }

@@ -26,21 +26,6 @@ func createcourse() models.Course {
 	}
 	return arg
 }
-func NewSection() []*models.Section {
-	result := []*models.Section{}
-	content := models.Content{
-		ID:         primitive.NewObjectID(),
-		SubTitle:   util.RandomString(10),
-		SubContent: util.RandomString(80),
-	}
-	section := models.Section{
-		ID:      primitive.NewObjectID(),
-		Title:   util.RandomString(10),
-		Content: []*models.Content{&content},
-	}
-	result = append(result, &section)
-	return result
-}
 
 func TestCourseCollection(t *testing.T) {
 	collection := controllers.Course.CourseCollection(context.Background())

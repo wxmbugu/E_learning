@@ -16,10 +16,10 @@ import (
 
 type Coursereq struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty"`
-	Name        string             `json:"name" binding:"required" bson:"Name,omitempty"`
-	Author      string             `json:"author" bson:"Author"`
-	Description string             `json:"description" binding:"required" bson:"Description,omitempty"`
-	CreatedAt   time.Time          `json:"created_at" bson:"Created_at"`
+	Name        string             `json:"name" binding:"required"`
+	Author      string             `json:"author"`
+	Description string             `json:"description" binding:"required"`
+	CreatedAt   time.Time          `json:"created_at"`
 }
 
 func (server *Server) createCourse(ctx *gin.Context) {
@@ -79,6 +79,19 @@ func (server *Server) deleteCourse(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "account doesn't belong to the authenticated user"})
 		return
 	} else {
+		for _, sectionid := range course.Section {
+			section, _ := server.Controller.Section.FindSection(ctx, sectionid)
+			for _, contentid := range section.Content {
+				err := server.Controller.Section.DeleteSection(ctx, contentid)
+				if err != nil {
+					log.Println(err)
+				}
+			}
+			err = server.Controller.Section.DeleteSection(ctx, sectionid)
+			if err != nil {
+				log.Println(err)
+			}
+		}
 		err = server.Controller.Course.DeleteCourse(ctx, req.ID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong couldn't delete"})
@@ -89,6 +102,7 @@ func (server *Server) deleteCourse(ctx *gin.Context) {
 		server.redisClient.Del("Courses")
 		ctx.JSON(http.StatusOK, "Delete Course Successfull!")
 	}
+
 }
 
 func (server *Server) findCourse(ctx *gin.Context) {
@@ -224,17 +238,9 @@ func (server *Server) listCourses(ctx *gin.Context) {
 
 }
 
-type countcoursereq struct {
-	Author string `uri:"author"`
-}
-
 func (server *Server) CountCoursesbyUsers(ctx *gin.Context) {
-	var req countcoursereq
-	if err := ctx.ShouldBindUri(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	totalcourses := server.Controller.Course.CountCoursesbyAuthor(ctx, req.Author)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	totalcourses := server.Controller.Course.CountCoursesbyAuthor(ctx, authPayload.Username)
 	ctx.JSON(http.StatusOK, totalcourses)
 }
 
@@ -254,7 +260,7 @@ func (server *Server) ListAllCourses(ctx *gin.Context) {
 
 type Enrollreq struct {
 	Coursetitle string `json:"title"`
-	Username    string `json:"username"`
+	//Username    string `json:"username"`
 }
 
 func (server *Server) Enroll(ctx *gin.Context) {
@@ -263,8 +269,8 @@ func (server *Server) Enroll(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Println("fuck", req)
-	user, err := server.Controller.User.FindInstructor(ctx, req.Username)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	user, err := server.Controller.User.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return

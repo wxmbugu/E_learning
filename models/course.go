@@ -13,19 +13,19 @@ type Course struct {
 	Description      string             `json:"description" binding:"required" bson:"Description,omitempty"`
 	CreatedAt        time.Time          `json:"created_at" bson:"Created_at"`
 	UpdatedAt        time.Time          `json:"updated_at,omitempty" bson:"Updated_at,omitempty"`
-	Section          []*Section         `json:"Section,omitempty" bson:"Section,omitempty"`
+	Section          []string           `json:"Section,omitempty" bson:"Section,omitempty"`
 	StudentsEnrolled []string           `json:"StudentsEnrolled" bson:"StudentsEnrolled,omitempty"`
 }
 
 type Section struct {
 	ID      primitive.ObjectID `bson:"_id" `
-	Title   string             `json:"Title" bson:"Title,omitempty"`
-	Content []*Content         `json:"Content" binding:"required" bson:"Content,omitempty"`
+	Title   string             `json:"title" bson:"Title,omitempty"`
+	Content []string           `json:"content" binding:"required" bson:"Content,omitempty"`
 }
 
 type Content struct {
-	ID         primitive.ObjectID `bson:"subsectionid" `
-	SubTitle   string             `json:"Subsection_Title" binding:"required" bson:"Subsection_Title,omitempty"`
-	SubContent string             `json:"SubContent" bson:"SubContent,omitempty"`
-	Thumbnail  string             `json:"Thumbnail" bson:"Thumbnail,omitempty"`
+	ID        primitive.ObjectID `bson:"_id" `
+	Title     string             `json:"title" binding:"required" bson:"Title,omitempty"`
+	Video     string             `json:"video" bson:"Content,omitempty"`
+	Thumbnail string             `json:"thumbnail" bson:"Thumbnail,omitempty"`
 }

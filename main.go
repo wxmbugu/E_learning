@@ -25,6 +25,9 @@ import (
 	"github.com/E_learning/util"
 )
 
+// Todo list
+// Loose Coupling -> Section.Content
+
 func main() {
 	env, err := util.LoadConfig(".")
 	if err != nil {

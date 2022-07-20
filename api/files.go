@@ -165,10 +165,10 @@ func (server Server) Uploadvideo(ctx *gin.Context) {
 			}
 			filepath := "https://" + server.Config.Bucketname + "." + "s3-" + server.Config.Awsregion + ".amazonaws.com/" + filename
 			upload := models.Content{
-				SubContent: filepath,
+				Video: filepath,
 			}
 			producer(filepath, server.Config.Rabbitmquri)
-			server.Controller.Course.UpdateSectionContent(ctx, req.Name, req.Subsectionid, req.Sectiontitle, &upload.SubContent)
+			server.Controller.Content.UpdateContentVideo(ctx, req.Subsectionid, upload.Video)
 			ctx.JSON(http.StatusOK, gin.H{"filepath": filepath})
 		} else {
 			ctx.JSON(http.StatusUnsupportedMediaType, "filetype should be video")
@@ -190,7 +190,7 @@ func (server Server) Uploadvideo(ctx *gin.Context) {
 
 func (server Server) Deletevideo(ctx *gin.Context) {
 	var req getContentRequest
-	content, err := server.Controller.Course.FindContent(ctx, req.Name, req.SubsectionId)
+	content, err := server.Controller.Content.FindContent(ctx, req.SubsectionId)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Something went wrong couldn't fetch data"})
 		return
@@ -200,7 +200,7 @@ func (server Server) Deletevideo(ctx *gin.Context) {
 		return
 	}
 	sess := ctx.MustGet("sess").(*session.Session)
-	err = Deletevideo(sess, &server.Config.Bucketname, &content.SubContent)
+	err = Deletevideo(sess, &server.Config.Bucketname, &content.Video)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}

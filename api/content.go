@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,11 +12,29 @@ import (
 	"github.com/E_learning/token"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/gin-gonic/gin"
+	//	"github.com/u2takey/go-utils/waitgroup"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+func (server *Server) ContentWorker(context context.Context, title, id string) {
+	server.wg.Add(1)
+	go func() {
+		defer server.wg.Done()
+		_, err := server.Controller.Section.Content(context, title, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+}
+
+type Contentreq struct {
+	Name         string `json:"coursetitle"`
+	Content      models.Content
+	Sectiontitle string
+}
+
 func (server *Server) CreateSubSection(ctx *gin.Context) {
-	var req controllers.CourseSubSection
+	var req Contentreq
 	if err := ctx.BindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -25,26 +44,29 @@ func (server *Server) CreateSubSection(ctx *gin.Context) {
 		return
 	}
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	course, err := server.Controller.Course.FindCoursebyName(ctx, req.CourseName)
+	course, err := server.Controller.Course.FindCoursebyName(ctx, req.Name)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 	if course.Author != authPayload.Username {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": controllers.ErrInvalidUser})
 		return
-	} else {
-		result, err := server.Controller.Course.AddContent(ctx, req, authPayload.Username)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		log.Println("Remove data from Redis")
-		server.redisClient.Del("Courses")
-		ctx.JSON(http.StatusOK, result)
 	}
+	result, err := server.Controller.Content.AddContent(ctx, req.Content)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	server.ContentWorker(ctx, req.Sectiontitle, result.ID.Hex())
+	log.Println("Remove data from Redis")
+	server.redisClient.Del("Courses")
+	ctx.JSON(http.StatusOK, result)
+
 }
 
 type UpdateSubSectionreq struct {
@@ -65,10 +87,6 @@ func (server *Server) UpdateSubSection(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	upd := models.Content{
-		SubTitle: req.SubSectionTitle,
-		//SubContent: req.Content,
-	}
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	course, err := server.Controller.Course.FindCoursebyName(ctx, req.Name)
 	if err != nil {
@@ -83,12 +101,12 @@ func (server *Server) UpdateSubSection(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": controllers.ErrInvalidUser})
 		return
 	} else {
-		content, _ := server.Controller.Course.FindContent(ctx, req.Name, req.Id)
-		if content.ID.IsZero() {
+		_, err := server.Controller.Content.FindContent(ctx, req.Id)
+		if err != nil {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found"})
 			return
 		}
-		result, err := server.Controller.Course.UpdateSectionTitle(ctx, req.Name, req.Id, req.Title, &upd.SubTitle)
+		result, err := server.Controller.Content.UpdateContentTitle(ctx, req.Id, req.SubSectionTitle)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -111,10 +129,6 @@ func (server *Server) DeleteSubSection(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	del := controllers.DelContent{
-		CourseName:   req.CourseName,
-		SubsectionId: req.SubsectionId,
-	}
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	course, err := server.Controller.Course.FindCoursebyName(ctx, req.CourseName)
 	if err != nil {
@@ -129,27 +143,27 @@ func (server *Server) DeleteSubSection(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": controllers.ErrInvalidUser})
 		return
 	} else {
-		content, _ := server.Controller.Course.FindContent(ctx, req.CourseName, req.SubsectionId)
+		content, _ := server.Controller.Content.FindContent(ctx, req.SubsectionId)
 		if content.ID.IsZero() {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Not Found"})
 			return
 		}
 
-		if content.SubContent == "" {
-			_, err := server.Controller.Course.DeleteContent(ctx, del)
+		if content.Video == "" || content.Thumbnail == "" {
+			err := server.Controller.Content.DeleteContent(ctx, req.SubsectionId)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
 		} else {
-			_, err := server.Controller.Course.DeleteContent(ctx, del)
+			err := server.Controller.Content.DeleteContent(ctx, req.SubsectionId)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
 			sess := ctx.MustGet("sess").(*session.Session)
-			fmt.Println(content.SubContent)
-			x := strings.TrimPrefix(content.SubContent, "https://elearning-course-videos.s3-eu-central-1.amazonaws.com/")
+			fmt.Println(content.Video)
+			x := strings.TrimPrefix(content.Video, "https://elearning-course-videos.s3-eu-central-1.amazonaws.com/")
 			fmt.Println("testing", x)
 			err = Deletevideo(sess, &server.Config.Bucketname, &x)
 			if err != nil {
@@ -184,7 +198,7 @@ func (server *Server) GetSubSection(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	content, err := server.Controller.Course.FindContent(ctx, req.Name, req.SubsectionId)
+	content, err := server.Controller.Content.FindContent(ctx, req.SubsectionId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong couldn't fetch data"})
 		return

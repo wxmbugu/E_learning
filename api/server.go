@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	//	sess "github.com/E_learning/sessions"
@@ -24,6 +25,7 @@ type Server struct {
 	redisClient *redis.Client
 	router      *gin.Engine
 	Controller  controllers.Controllers
+	wg          sync.WaitGroup
 }
 
 func NewServer(config util.Config) (*Server, error) {

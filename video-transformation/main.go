@@ -266,7 +266,7 @@ func Reupload(filename string, data urldata) (*string, string) {
 	return &result.Location, filename
 }
 
-func UpdateSectionContent(ctx context.Context, name string, subsectionid string, sectiontitle string, location *string, filename string) (*mongo.UpdateResult, error) {
+func UpdateSectionContent(ctx context.Context, name, subsectionid, sectiontitle, location, filename string) (*mongo.UpdateResult, error) {
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.DbUri))
 	if err != nil {
 		log.Fatal(err)
@@ -368,7 +368,7 @@ func worker(filename []string, data urldata) (*string, string) {
 				data.Name,
 				data.Subsectionid,
 				data.Sectiontitle,
-				location,
+				*location,
 				fname,
 			)
 			deletefiles(fname)

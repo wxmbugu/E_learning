@@ -3,8 +3,10 @@ package controllers
 import "go.mongodb.org/mongo-driver/mongo"
 
 type Controllers struct {
-	User   Instructor
-	Course Course
+	User    Instructor
+	Course  Course
+	Section Section
+	Content Content
 }
 
 func New(client *mongo.Client) Controllers {
@@ -13,6 +15,12 @@ func New(client *mongo.Client) Controllers {
 			client: client,
 		},
 		Course: Course{
+			client: client,
+		},
+		Section: Section{
+			client: client,
+		},
+		Content: Content{
 			client: client,
 		},
 	}

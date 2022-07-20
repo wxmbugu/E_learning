@@ -7,90 +7,44 @@ import (
 	"github.com/E_learning/models"
 	"github.com/E_learning/util"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
+func NewSection() models.Section {
+	section := models.Section{
+		ID:    primitive.NewObjectID(),
+		Title: util.RandomString(10),
+	}
+	results, _ := controllers.Section.AddSection(context.Background(), section)
+	return results
+}
 func TestFindSection(t *testing.T) {
-	args := createcourse()
 	section := NewSection()
-	argsec := CourseSec{
-		Name:    args.Name,
-		Section: section,
-	}
-	args.Section = section
-	course, _ := controllers.Course.CreateCourse(context.Background(), &args)
-	require.NotEmpty(t, course)
-	for _, section := range argsec.Section {
-		result, err := controllers.Course.FindSection(context.Background(), argsec.Name, course.Author, section.ID.Hex())
-		require.NoError(t, err)
-		require.NotNil(t, result)
-		result1, err := controllers.Course.FindSectionbyTitle(context.Background(), argsec.Name, course.Author, result.Title)
-		require.NoError(t, err)
-		require.NotNil(t, result1)
-		require.Equal(t, result.Title, result1.Title)
-
-	}
-
+	foundsection, err := controllers.Section.FindSection(context.Background(), section.ID.Hex())
+	require.NoError(t, err)
+	require.Equal(t, section, foundsection)
+	_, err = controllers.Section.FindSection(context.Background(), "")
+	require.EqualError(t, err, mongo.ErrNoDocuments.Error())
 }
 
 func TestDeleteSection(t *testing.T) {
-	args := createcourse()
 	section := NewSection()
-	argsec := CourseSec{
-		Name:    args.Name,
-		Section: section,
-	}
-	args.Section = section
-	course, _ := controllers.Course.CreateCourse(context.Background(), &args)
-	require.NotEmpty(t, course)
-	var argdel DelSection
-	for _, section := range argsec.Section {
-		argdel = DelSection{
-			Name: course.Name,
-			Id:   section.ID.Hex(),
-		}
-		res, err := controllers.Course.DeleteSection(context.Background(), argdel)
-		require.NoError(t, err)
-		require.NotEmpty(t, res)
-		sec, err := controllers.Course.FindSection(context.Background(), argdel.Name, course.Author, "")
-		require.NoError(t, err)
-		require.Empty(t, sec)
-
-	}
-
+	err := controllers.Section.DeleteSection(context.Background(), section.ID.Hex())
+	require.NoError(t, err)
+	_, err = controllers.Section.FindSection(context.Background(), section.ID.Hex())
+	require.EqualError(t, err, mongo.ErrNoDocuments.Error())
 }
 
 func TestAddSection(t *testing.T) {
-	args := createcourse()
-	section := NewSection()
-	args.Section = section
-	course, _ := controllers.Course.CreateCourse(context.Background(), &args)
-	require.NotEmpty(t, course)
-	argsec := CourseSec{
-		Name:    args.Name,
-		Section: section,
-	}
-	result, err := controllers.Course.AddSection(context.Background(), argsec, course.Author)
-	require.NoError(t, err)
-	require.NotNil(t, result)
+	args := NewSection()
+	require.NotEmpty(t, args)
 
 }
 
 func TestUpdateSection(t *testing.T) {
-	args := createcourse()
-	section := NewSection()
-	args.Section = section
-	course, _ := controllers.Course.CreateCourse(context.Background(), &args)
-	require.NotEmpty(t, course)
-	argsec := CourseSec{
-		Name:    args.Name,
-		Section: section,
-	}
-	for _, section := range argsec.Section {
-		args := models.Section{
-			Title: util.RandomString(4),
-		}
-		result, err := controllers.Course.UpdateSection(context.Background(), course.Name, section.ID.Hex(), &args)
-		require.NoError(t, err)
-		require.NotNil(t, result)
-	}
+	args := NewSection()
+	result, err := controllers.Section.UpdateSection(context.Background(), args.ID.Hex(), "NewSectionTitle")
+	require.NoError(t, err)
+	require.Equal(t, 1, result.ModifiedCount)
 }
