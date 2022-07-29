@@ -183,7 +183,7 @@ func (c *Course) ListAllCourses(ctx context.Context) ([]models.Course, error) {
 
 }
 
-func (c *Course) Enroll(ctx context.Context, coursetitle string, id string) (*mongo.UpdateResult, error) {
+func (c *Course) Enroll(ctx context.Context, coursetitle, id string) (*mongo.UpdateResult, error) {
 	collection := c.CourseCollection(ctx)
 	course, err := c.FindCoursebyName(ctx, coursetitle)
 	if err != nil {

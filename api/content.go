@@ -135,7 +135,7 @@ func (server *Server) DeleteSubSection(ctx *gin.Context) {
 			return
 		}
 
-		if content.SubContent == "" {
+		if content.SubContent == "" || content.Thumbnail == "" {
 			_, err := server.Controller.Course.DeleteContent(ctx, del)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -149,14 +149,13 @@ func (server *Server) DeleteSubSection(ctx *gin.Context) {
 			}
 			sess := ctx.MustGet("sess").(*session.Session)
 			fmt.Println(content.SubContent)
-			x := strings.TrimPrefix(content.SubContent, "https://elearning-course-videos.s3-eu-central-1.amazonaws.com/")
-			fmt.Println("testing", x)
-			err = Deletevideo(sess, &server.Config.Bucketname, &x)
+			keyvid := strings.TrimPrefix(content.SubContent, "https://elearning-course-videos.s3-eu-central-1.amazonaws.com/")
+			err = Deletevideo(sess, &server.Config.Bucketname, &keyvid)
 			if err != nil {
 				log.Println(err)
 			}
-			y := strings.TrimPrefix(content.Thumbnail, "https://elearning-course-videos.s3-eu-central-1.amazonaws.com/")
-			err = Deletevideo(sess, &server.Config.Bucketname, &y)
+			keythumb := strings.TrimPrefix(content.Thumbnail, "https://elearning-course-videos.s3-eu-central-1.amazonaws.com/")
+			err = Deletevideo(sess, &server.Config.Bucketname, &keythumb)
 			if err != nil {
 				log.Println(err)
 			}
