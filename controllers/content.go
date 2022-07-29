@@ -13,7 +13,7 @@ import (
 )
 
 //find content of a section in a course
-func (c *Course) FindContent(ctx context.Context, name string, subsectionid string) (*models.Content, error) {
+func (c *Course) FindContent(ctx context.Context, name, subsectionid string) (*models.Content, error) {
 	var content models.Content
 	collection := c.CourseCollection(ctx)
 	iuud, _ := primitive.ObjectIDFromHex(subsectionid)
@@ -119,7 +119,7 @@ func (c *Course) AddContent(ctx context.Context, arg CourseSubSection, author st
 }
 
 //update content of a section in a course
-func (c *Course) UpdateSectionContent(ctx context.Context, name string, subsectionid string, sectiontitle string, arg *string) (*mongo.UpdateResult, error) {
+func (c *Course) UpdateSectionContent(ctx context.Context, name, subsectionid, sectiontitle string, arg *string) (*mongo.UpdateResult, error) {
 	collection := c.CourseCollection(ctx)
 	filter := bson.D{primitive.E{Key: "Name", Value: name}}
 	iuud, _ := primitive.ObjectIDFromHex(subsectionid)
@@ -143,7 +143,7 @@ func (c *Course) UpdateSectionContent(ctx context.Context, name string, subsecti
 }
 
 //update content of a section in a course
-func (c *Course) UpdateSectionTitle(ctx context.Context, name string, subsectionid string, sectiontitle string, arg *string) (*mongo.UpdateResult, error) {
+func (c *Course) UpdateSectionTitle(ctx context.Context, name, subsectionid, sectiontitle string, arg *string) (*mongo.UpdateResult, error) {
 	collection := c.CourseCollection(ctx)
 	filter := bson.D{primitive.E{Key: "Name", Value: name}}
 	iuud, _ := primitive.ObjectIDFromHex(subsectionid)

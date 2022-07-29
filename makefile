@@ -12,4 +12,6 @@ startrabbitmq:
 	docker start rabbitmq
 server:
 	go run main.go
-.PHONY: mongo startdb test server dbshell rabbitmq
+client:
+	npm run --prefix templates/Front-end/ serve
+.PHONY: mongo startdb test server dbshell rabbitmq client

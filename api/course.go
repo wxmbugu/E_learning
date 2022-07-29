@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -254,7 +253,7 @@ func (server *Server) ListAllCourses(ctx *gin.Context) {
 
 type Enrollreq struct {
 	Coursetitle string `json:"title"`
-	Username    string `json:"username"`
+	//Username    string `json:"username"`
 }
 
 func (server *Server) Enroll(ctx *gin.Context) {
@@ -263,8 +262,8 @@ func (server *Server) Enroll(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Println("fuck", req)
-	user, err := server.Controller.User.FindInstructor(ctx, req.Username)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	user, err := server.Controller.User.FindInstructor(ctx, authPayload.Username)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -279,10 +278,7 @@ func (server *Server) Enroll(ctx *gin.Context) {
 		return
 	}
 	result, err := server.Controller.Course.Enroll(ctx, req.Coursetitle, user.ID.Hex())
-	fmt.Println("bozo")
-
 	if err != nil {
-		fmt.Println("washappening!", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

@@ -47,7 +47,7 @@ func (c *Course) AddSection(ctx context.Context, arg CourseSec, author string) (
 }
 
 //update course section
-func (c *Course) UpdateSection(ctx context.Context, name string, id string, arg *models.Section) (*mongo.UpdateResult, error) {
+func (c *Course) UpdateSection(ctx context.Context, name, id string, arg *models.Section) (*mongo.UpdateResult, error) {
 	collection := c.CourseCollection(ctx)
 	filter := bson.D{primitive.E{Key: "Name", Value: name}}
 	iuud, _ := primitive.ObjectIDFromHex(id)
@@ -92,7 +92,7 @@ func (c *Course) DeleteSection(ctx context.Context, arg DelSection) (*mongo.Upda
 }
 
 //find course section by id
-func (c *Course) FindSection(ctx context.Context, name string, author string, id string) (*models.Section, error) {
+func (c *Course) FindSection(ctx context.Context, name, author, id string) (*models.Section, error) {
 	var section models.Section
 	collection := c.CourseCollection(ctx)
 	iuud, _ := primitive.ObjectIDFromHex(id)
@@ -127,7 +127,7 @@ func (c *Course) FindSection(ctx context.Context, name string, author string, id
 }
 
 //find course section by title
-func (c *Course) FindSectionbyTitle(ctx context.Context, name string, author string, sectiontitle string) (*models.Section, error) {
+func (c *Course) FindSectionbyTitle(ctx context.Context, name, author, sectiontitle string) (*models.Section, error) {
 	var section models.Section
 	collection := c.CourseCollection(ctx)
 	course, err := c.FindCoursebyName(ctx, name)
