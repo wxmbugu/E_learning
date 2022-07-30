@@ -33,7 +33,7 @@ func NewServer(config util.Config) (*Server, error) {
 	}
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
+		Addr: "redis:6379",
 	})
 	status := redisClient.Ping()
 	fmt.Println(status)
